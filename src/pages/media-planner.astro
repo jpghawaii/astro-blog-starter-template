@@ -1,0 +1,706 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead
+			title="Media Planner & ROI Calculator | JPG Media"
+			description="Build a multi-format out-of-home media plan and see when the campaign pays for itself based on your average order value."
+		/>
+	</head>
+	<body>
+		<Header />
+		<main class="planner-main">
+			<section class="planner-hero">
+				<h1>Media Planner &amp; ROI Calculator</h1>
+				<p class="lede">
+					Build a 4-week-flighted plan across our network and see the break-even point,
+					ROAS, and projected revenue based on the client's average order value.
+				</p>
+			</section>
+
+			<div id="planner-root" class="planner-grid">
+				<!-- LEFT: INPUT FORM -->
+				<form id="plan-form" class="card form-card" autocomplete="off">
+					<div class="section">
+						<h2>1. Client &amp; Economics</h2>
+						<div class="row">
+							<label>
+								<span>Client / Advertiser</span>
+								<input type="text" id="clientName" placeholder="e.g. Honolulu Plumbing Co." />
+							</label>
+							<label>
+								<span>Industry preset</span>
+								<select id="industryPreset">
+									<option value="custom">Custom</option>
+									<option value="plumber">Home Services (Plumber / HVAC)</option>
+									<option value="restaurant">Restaurant / QSR</option>
+									<option value="auto">Auto Dealer</option>
+									<option value="medspa">Medical / Med Spa</option>
+									<option value="retail">Retail / E-comm</option>
+									<option value="realestate">Real Estate</option>
+								</select>
+							</label>
+						</div>
+						<div class="row">
+							<label>
+								<span>Average Order Value (AOV) <em>$</em></span>
+								<input type="number" id="aov" min="0" step="10" value="1000" />
+							</label>
+							<label>
+								<span>Gross profit margin %</span>
+								<input type="number" id="margin" min="0" max="100" step="1" value="40" />
+							</label>
+						</div>
+						<div class="row">
+							<label>
+								<span>Repeat-customer multiplier (LTV)</span>
+								<input type="number" id="ltvMultiplier" min="1" step="0.1" value="1" />
+								<small>1.0 = single order. 2.5 = each customer worth 2.5× AOV over time.</small>
+							</label>
+							<label>
+								<span>Expected response rate</span>
+								<select id="responseRate">
+									<option value="0.0003">Conservative — 0.03% (3 in 10,000)</option>
+									<option value="0.0005" selected>Realistic — 0.05% (1 in 2,000)</option>
+									<option value="0.001">Strong creative — 0.10% (1 in 1,000)</option>
+									<option value="0.002">High-intent — 0.20% (2 in 1,000)</option>
+								</select>
+								<small>% of impressions that convert into an order.</small>
+							</label>
+						</div>
+					</div>
+
+					<div class="section">
+						<h2>2. Campaign Scope</h2>
+						<div class="row">
+							<label>
+								<span>Duration (4-week flights)</span>
+								<input type="number" id="flights" min="1" max="13" step="1" value="3" />
+								<small id="weeksHint">= 12 weeks ≈ 3 months</small>
+							</label>
+							<label>
+								<span>Budget per 4-week flight <em>$</em></span>
+								<input type="number" id="budgetPerFlight" min="0" step="100" value="3500" />
+								<small id="totalBudgetHint">Total spend: $10,500</small>
+							</label>
+						</div>
+						<div class="row">
+							<label class="full">
+								<span>Points of interest / target areas (zip codes or neighborhoods)</span>
+								<input type="text" id="zips" placeholder="e.g. 96813, 96814, 96826, Kakaako, Ala Moana" />
+							</label>
+						</div>
+						<div class="row">
+							<label class="full">
+								<span>Target audience</span>
+								<input type="text" id="audience" placeholder="e.g. Homeowners 35-65, household income $75k+" />
+							</label>
+						</div>
+					</div>
+
+					<div class="section">
+						<h2>3. Venue Mix</h2>
+						<p class="hint">
+							Pick the formats. Allocations are a % of total budget — they auto-balance to 100%.
+							CPM (cost per 1,000 impressions) is editable per client deal.
+						</p>
+						<div id="venues" class="venue-list"></div>
+						<div class="alloc-meter">
+							<div class="alloc-meter-bar"><div id="allocFill"></div></div>
+							<div class="alloc-meter-text">
+								Allocated: <strong id="allocPct">0%</strong>
+								<button type="button" id="balanceBtn" class="ghost">Auto-balance to 100%</button>
+							</div>
+						</div>
+					</div>
+
+					<div class="actions">
+						<button type="button" id="resetBtn" class="ghost">Reset</button>
+						<button type="button" id="printBtn" class="primary">Download / Print Plan</button>
+					</div>
+				</form>
+
+				<!-- RIGHT: RESULTS -->
+				<aside class="card result-card" id="results">
+					<div class="result-header">
+						<h2>Plan Summary</h2>
+						<span id="clientChip" class="chip">New campaign</span>
+					</div>
+
+					<div class="hero-stat">
+						<div class="hero-stat-label">Return on ad spend (ROAS)</div>
+						<div class="hero-stat-value" id="roas">—</div>
+						<div class="hero-stat-sub" id="roasSub">Enter a budget to begin.</div>
+					</div>
+
+					<div class="stat-grid">
+						<div class="stat">
+							<div class="stat-label">Total impressions</div>
+							<div class="stat-value" id="totalImpressions">—</div>
+						</div>
+						<div class="stat">
+							<div class="stat-label">Projected orders</div>
+							<div class="stat-value" id="projOrders">—</div>
+						</div>
+						<div class="stat">
+							<div class="stat-label">Projected revenue</div>
+							<div class="stat-value" id="projRevenue">—</div>
+						</div>
+						<div class="stat">
+							<div class="stat-label">Projected gross profit</div>
+							<div class="stat-value" id="projProfit">—</div>
+						</div>
+						<div class="stat">
+							<div class="stat-label">Total ad spend</div>
+							<div class="stat-value" id="totalSpend">—</div>
+						</div>
+						<div class="stat">
+							<div class="stat-label">Net ROI</div>
+							<div class="stat-value" id="netRoi">—</div>
+						</div>
+					</div>
+
+					<div class="breakeven-panel">
+						<div class="breakeven-row">
+							<span>Orders to break even</span>
+							<strong id="breakevenOrders">—</strong>
+						</div>
+						<div class="breakeven-row">
+							<span>Break-even flight</span>
+							<strong id="breakevenFlight">—</strong>
+						</div>
+						<div class="breakeven-row no-brainer" id="noBrainer">
+							<span>The pitch</span>
+							<strong>Fill out the form →</strong>
+						</div>
+					</div>
+
+					<h3 class="mix-title">Channel breakdown</h3>
+					<table class="mix-table">
+						<thead>
+							<tr>
+								<th>Format</th>
+								<th>Spend</th>
+								<th>Impressions</th>
+								<th>Audience</th>
+							</tr>
+						</thead>
+						<tbody id="mixBody">
+							<tr><td colspan="4" class="empty">Select at least one venue.</td></tr>
+						</tbody>
+					</table>
+
+					<p class="disclaimer">
+						Projections use industry-typical DOOH/OOH response rates. Actual results vary with
+						creative, offer, frequency, and seasonality. JPG Media uses these numbers for planning
+						only — not as a guarantee of results.
+					</p>
+				</aside>
+			</div>
+		</main>
+		<Footer />
+
+		<style>
+			.planner-main {
+				width: 100%;
+				max-width: 1240px;
+				margin: 0 auto;
+				padding: 2em 1em 4em;
+			}
+			.planner-hero {
+				text-align: center;
+				padding: 1em 0 2em;
+			}
+			.planner-hero h1 {
+				font-size: 2.4em;
+				margin-bottom: 0.3em;
+			}
+			.planner-hero .lede {
+				color: rgb(var(--gray));
+				max-width: 680px;
+				margin: 0 auto;
+				font-size: 1.05em;
+			}
+			.planner-grid {
+				display: grid;
+				grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+				gap: 1.5em;
+				align-items: start;
+			}
+			@media (max-width: 960px) {
+				.planner-grid {
+					grid-template-columns: 1fr;
+				}
+			}
+			.card {
+				background: #fff;
+				border: 1px solid rgb(var(--gray-light));
+				border-radius: 14px;
+				padding: 1.6em;
+				box-shadow: 0 4px 20px rgba(var(--gray), 12%);
+			}
+			.section { margin-bottom: 1.8em; }
+			.section:last-of-type { margin-bottom: 0.8em; }
+			.section h2 {
+				font-size: 1.15em;
+				margin: 0 0 0.8em 0;
+				color: rgb(var(--black));
+				display: flex;
+				align-items: center;
+				gap: 0.5em;
+			}
+			.section h2::before {
+				content: "";
+				width: 4px;
+				height: 1em;
+				background: var(--accent);
+				border-radius: 2px;
+			}
+			.row {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 0.9em;
+				margin-bottom: 0.9em;
+			}
+			.row label.full { grid-column: 1 / -1; }
+			@media (max-width: 600px) {
+				.row { grid-template-columns: 1fr; }
+			}
+			label {
+				display: flex;
+				flex-direction: column;
+				font-size: 0.85em;
+				color: rgb(var(--gray-dark));
+				font-weight: 600;
+			}
+			label > span { margin-bottom: 0.3em; }
+			label em {
+				font-style: normal;
+				color: rgb(var(--gray));
+				font-weight: 400;
+			}
+			label small {
+				font-weight: 400;
+				color: rgb(var(--gray));
+				margin-top: 0.3em;
+				font-size: 0.9em;
+			}
+			input[type="text"],
+			input[type="number"],
+			select {
+				font-family: inherit;
+				font-size: 0.95em;
+				padding: 0.55em 0.7em;
+				border: 1px solid rgb(var(--gray-light));
+				border-radius: 8px;
+				background: #fff;
+				color: rgb(var(--gray-dark));
+				transition: border-color 0.15s, box-shadow 0.15s;
+			}
+			input:focus, select:focus {
+				outline: none;
+				border-color: var(--accent);
+				box-shadow: 0 0 0 3px rgba(35, 55, 255, 0.12);
+			}
+			.hint {
+				color: rgb(var(--gray));
+				font-size: 0.9em;
+				margin: 0 0 1em 0;
+			}
+			.venue-list {
+				display: flex;
+				flex-direction: column;
+				gap: 0.6em;
+			}
+			.venue {
+				display: grid;
+				grid-template-columns: auto 1fr auto auto;
+				gap: 0.7em;
+				align-items: center;
+				padding: 0.6em 0.8em;
+				border: 1px solid rgb(var(--gray-light));
+				border-radius: 10px;
+				background: #fafbff;
+			}
+			.venue.on { border-color: var(--accent); background: #f4f6ff; }
+			.venue input[type="checkbox"] {
+				width: 18px; height: 18px;
+				accent-color: var(--accent);
+			}
+			.venue .v-name {
+				font-weight: 600;
+				font-size: 0.95em;
+				color: rgb(var(--gray-dark));
+			}
+			.venue .v-aud {
+				font-size: 0.8em;
+				color: rgb(var(--gray));
+				font-weight: 400;
+				margin-top: 2px;
+			}
+			.venue .v-alloc, .venue .v-cpm {
+				display: flex; flex-direction: column;
+				align-items: center; gap: 2px;
+			}
+			.venue .v-alloc input, .venue .v-cpm input {
+				width: 68px; padding: 0.4em; text-align: right;
+				font-size: 0.9em;
+			}
+			.venue .v-alloc label, .venue .v-cpm label {
+				font-size: 0.7em; color: rgb(var(--gray));
+				text-transform: uppercase; letter-spacing: 0.04em;
+				font-weight: 600;
+			}
+			.alloc-meter {
+				margin-top: 1em;
+				display: flex; flex-direction: column; gap: 0.4em;
+			}
+			.alloc-meter-bar {
+				background: rgb(var(--gray-light));
+				border-radius: 999px; height: 8px; overflow: hidden;
+			}
+			#allocFill {
+				height: 100%;
+				background: var(--accent);
+				width: 0%;
+				transition: width 0.2s, background 0.2s;
+			}
+			.alloc-meter-text {
+				display: flex; align-items: center; justify-content: space-between;
+				font-size: 0.85em; color: rgb(var(--gray));
+			}
+			.actions {
+				display: flex; gap: 0.8em; justify-content: flex-end;
+				margin-top: 1.6em;
+			}
+			button.primary, button.ghost {
+				font-family: inherit; font-size: 0.95em; font-weight: 600;
+				padding: 0.65em 1.2em;
+				border-radius: 8px; cursor: pointer; border: 1px solid transparent;
+				transition: background 0.15s, transform 0.05s;
+			}
+			button.primary {
+				background: var(--accent); color: #fff;
+			}
+			button.primary:hover { background: var(--accent-dark); }
+			button.ghost {
+				background: #fff; color: rgb(var(--gray-dark));
+				border-color: rgb(var(--gray-light));
+			}
+			button.ghost:hover { background: #f4f6ff; border-color: var(--accent); }
+			button:active { transform: translateY(1px); }
+
+			/* RESULTS */
+			.result-card { position: sticky; top: 1em; }
+			.result-header {
+				display: flex; align-items: center; justify-content: space-between;
+				margin-bottom: 1em;
+			}
+			.result-header h2 { font-size: 1.25em; margin: 0; }
+			.chip {
+				background: #f4f6ff;
+				color: var(--accent-dark);
+				font-size: 0.75em; font-weight: 700;
+				padding: 0.3em 0.7em; border-radius: 999px;
+				text-transform: uppercase; letter-spacing: 0.06em;
+			}
+			.hero-stat {
+				background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+				color: #fff;
+				border-radius: 12px;
+				padding: 1.3em 1.4em;
+				margin-bottom: 1.2em;
+			}
+			.hero-stat-label {
+				font-size: 0.8em; text-transform: uppercase;
+				letter-spacing: 0.08em; opacity: 0.85;
+			}
+			.hero-stat-value {
+				font-size: 2.6em; font-weight: 700; line-height: 1.05;
+				margin: 0.1em 0 0.15em;
+			}
+			.hero-stat-sub { opacity: 0.9; font-size: 0.95em; }
+			.stat-grid {
+				display: grid; grid-template-columns: 1fr 1fr 1fr;
+				gap: 0.6em; margin-bottom: 1.2em;
+			}
+			@media (max-width: 500px) {
+				.stat-grid { grid-template-columns: 1fr 1fr; }
+			}
+			.stat {
+				background: #f8f9ff;
+				border-radius: 10px;
+				padding: 0.7em 0.8em;
+			}
+			.stat-label {
+				font-size: 0.72em; color: rgb(var(--gray));
+				text-transform: uppercase; letter-spacing: 0.05em;
+				font-weight: 700;
+			}
+			.stat-value {
+				font-size: 1.2em; font-weight: 700;
+				color: rgb(var(--black)); margin-top: 0.2em;
+			}
+			.breakeven-panel {
+				background: #f8f9ff; border-radius: 10px;
+				padding: 1em 1.1em; margin-bottom: 1.4em;
+			}
+			.breakeven-row {
+				display: flex; justify-content: space-between;
+				padding: 0.4em 0; font-size: 0.95em;
+				border-bottom: 1px solid rgb(var(--gray-light));
+			}
+			.breakeven-row:last-child { border: none; padding-bottom: 0; }
+			.breakeven-row span { color: rgb(var(--gray)); }
+			.no-brainer {
+				margin-top: 0.5em; padding-top: 0.7em !important;
+				border-top: 1px dashed rgb(var(--gray-light));
+			}
+			.no-brainer strong {
+				color: var(--accent-dark); text-align: right;
+			}
+			.mix-title {
+				font-size: 1em; margin: 1em 0 0.5em;
+				color: rgb(var(--gray-dark));
+			}
+			.mix-table {
+				width: 100%; border-collapse: collapse;
+				font-size: 0.88em;
+			}
+			.mix-table th, .mix-table td {
+				text-align: left; padding: 0.5em 0.3em;
+				border-bottom: 1px solid rgb(var(--gray-light));
+			}
+			.mix-table th {
+				font-size: 0.75em; text-transform: uppercase;
+				letter-spacing: 0.05em; color: rgb(var(--gray));
+			}
+			.mix-table td.empty {
+				text-align: center; color: rgb(var(--gray));
+				padding: 1.2em 0;
+			}
+			.mix-table td:nth-child(2), .mix-table td:nth-child(3) {
+				font-variant-numeric: tabular-nums;
+			}
+			.disclaimer {
+				font-size: 0.78em; color: rgb(var(--gray));
+				margin-top: 1.4em; line-height: 1.5;
+			}
+
+			@media print {
+				.planner-grid { grid-template-columns: 1fr; }
+				.form-card { display: none; }
+				.result-card { box-shadow: none; border: none; position: static; }
+				header, footer { display: none; }
+			}
+		</style>
+
+		<script is:inline define:vars={{}}>
+			(function () {
+				const VENUES = [
+					{ id: 'grocery', name: 'Grocery Retail Screens', defaultCpm: 18, audience: 'Adults 25–65, primary household shoppers, decision-makers' },
+					{ id: 'cstore', name: 'Convenience Store Screens', defaultCpm: 15, audience: 'Adults 18–54, commuters, impulse + quick-trip buyers' },
+					{ id: 'retail', name: 'Retail Store Screens', defaultCpm: 12, audience: 'In-market shoppers actively browsing categories' },
+					{ id: 'vehicle', name: 'Vehicle Exterior Advertising', defaultCpm: 4, audience: 'Mass-reach commuters, pedestrians, drive-by traffic' },
+					{ id: 'shopping', name: 'Shopping Center Screens', defaultCpm: 16, audience: 'Families, leisure shoppers, dwell-time visitors' },
+					{ id: 'hotel', name: 'Hotel Digital Screens', defaultCpm: 22, audience: 'Travelers, business visitors, tourists, affluent guests' },
+					{ id: 'mall', name: 'Mall Signage', defaultCpm: 14, audience: 'Diverse demos — youth, families, professionals' },
+				];
+
+				const INDUSTRY_PRESETS = {
+					plumber:    { aov: 1000, margin: 35, ltv: 1.8,  rate: '0.0005' },
+					restaurant: { aov: 45,   margin: 25, ltv: 6.0,  rate: '0.001'  },
+					auto:       { aov: 28000,margin: 8,  ltv: 1.2,  rate: '0.0003' },
+					medspa:     { aov: 650,  margin: 60, ltv: 3.0,  rate: '0.0005' },
+					retail:     { aov: 85,   margin: 45, ltv: 2.5,  rate: '0.001'  },
+					realestate: { aov: 18000,margin: 70, ltv: 1.0,  rate: '0.0003' },
+				};
+
+				const $ = (id) => document.getElementById(id);
+				const fmtMoney = (n) => '$' + Math.round(n).toLocaleString('en-US');
+				const fmtMoneyDec = (n) => '$' + (Math.round(n*100)/100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+				const fmtInt = (n) => Math.round(n).toLocaleString('en-US');
+
+				// Render venue rows
+				const venueWrap = $('venues');
+				const defaultAlloc = Math.round(100 / 3); // 3 venues on by default
+				const DEFAULT_ON = ['grocery', 'cstore', 'vehicle'];
+				VENUES.forEach((v) => {
+					const on = DEFAULT_ON.includes(v.id);
+					const row = document.createElement('div');
+					row.className = 'venue' + (on ? ' on' : '');
+					row.dataset.id = v.id;
+					row.innerHTML = `
+						<input type="checkbox" class="v-on" ${on ? 'checked' : ''} aria-label="Enable ${v.name}" />
+						<div>
+							<div class="v-name">${v.name}</div>
+							<div class="v-aud">${v.audience}</div>
+						</div>
+						<div class="v-cpm">
+							<label>CPM</label>
+							<input type="number" class="v-cpm-in" min="0" step="0.5" value="${v.defaultCpm}" />
+						</div>
+						<div class="v-alloc">
+							<label>% Mix</label>
+							<input type="number" class="v-alloc-in" min="0" max="100" step="1" value="${on ? defaultAlloc : 0}" />
+						</div>
+					`;
+					venueWrap.appendChild(row);
+				});
+
+				function readVenues() {
+					return VENUES.map((v) => {
+						const row = venueWrap.querySelector(`.venue[data-id="${v.id}"]`);
+						const on = row.querySelector('.v-on').checked;
+						const cpm = parseFloat(row.querySelector('.v-cpm-in').value) || 0;
+						const alloc = parseFloat(row.querySelector('.v-alloc-in').value) || 0;
+						return { ...v, on, cpm, alloc, row };
+					});
+				}
+
+				function syncVenueStyles(venues) {
+					venues.forEach((v) => v.row.classList.toggle('on', v.on));
+				}
+
+				function autoBalance() {
+					const vs = readVenues().filter(v => v.on);
+					if (!vs.length) return;
+					const per = Math.floor(100 / vs.length);
+					const rem = 100 - per * vs.length;
+					vs.forEach((v, i) => {
+						v.row.querySelector('.v-alloc-in').value = per + (i === 0 ? rem : 0);
+					});
+					readVenues().filter(v => !v.on).forEach(v => v.row.querySelector('.v-alloc-in').value = 0);
+					recalc();
+				}
+
+				function recalc() {
+					const aov = parseFloat($('aov').value) || 0;
+					const margin = (parseFloat($('margin').value) || 0) / 100;
+					const ltv = parseFloat($('ltvMultiplier').value) || 1;
+					const rate = parseFloat($('responseRate').value) || 0;
+					const flights = Math.max(1, parseInt($('flights').value || '1', 10));
+					const budgetPerFlight = parseFloat($('budgetPerFlight').value) || 0;
+					const totalBudget = budgetPerFlight * flights;
+
+					$('weeksHint').textContent = `= ${flights * 4} weeks ≈ ${(flights * 4 / 4.33).toFixed(1)} months`;
+					$('totalBudgetHint').textContent = `Total spend: ${fmtMoney(totalBudget)}`;
+
+					const venues = readVenues();
+					syncVenueStyles(venues);
+
+					const active = venues.filter(v => v.on && v.alloc > 0 && v.cpm > 0);
+					const totalAlloc = active.reduce((s, v) => s + v.alloc, 0);
+					$('allocPct').textContent = `${Math.round(totalAlloc)}%`;
+					const fill = $('allocFill');
+					fill.style.width = Math.min(100, totalAlloc) + '%';
+					fill.style.background = (totalAlloc > 100 || totalAlloc < 99) ? '#ff8a3d' : 'var(--accent)';
+
+					let totalImpressions = 0;
+					const rows = active.map((v) => {
+						const share = totalAlloc > 0 ? v.alloc / totalAlloc : 0;
+						const spend = totalBudget * share;
+						const impressions = v.cpm > 0 ? (spend / v.cpm) * 1000 : 0;
+						totalImpressions += impressions;
+						return { ...v, spend, impressions };
+					});
+
+					const projectedOrders = totalImpressions * rate;
+					const projectedRevenue = projectedOrders * aov * ltv;
+					const projectedProfit = projectedRevenue * margin;
+					const netRoi = totalBudget > 0 ? ((projectedProfit - totalBudget) / totalBudget) * 100 : 0;
+					const roas = totalBudget > 0 ? projectedRevenue / totalBudget : 0;
+
+					const ordersToBreakeven = (aov > 0 && margin > 0 && ltv > 0)
+						? totalBudget / (aov * margin * ltv) : 0;
+					const ordersPerFlight = projectedOrders / Math.max(1, flights);
+					const breakevenFlight = (ordersPerFlight > 0)
+						? Math.ceil(ordersToBreakeven / ordersPerFlight) : null;
+
+					$('totalImpressions').textContent = totalImpressions ? fmtInt(totalImpressions) : '—';
+					$('projOrders').textContent = projectedOrders ? fmtInt(Math.max(1, projectedOrders)) : '—';
+					$('projRevenue').textContent = projectedRevenue ? fmtMoney(projectedRevenue) : '—';
+					$('projProfit').textContent = projectedProfit ? fmtMoney(projectedProfit) : '—';
+					$('totalSpend').textContent = totalBudget ? fmtMoney(totalBudget) : '—';
+					$('netRoi').textContent = totalBudget && projectedRevenue
+						? `${netRoi >= 0 ? '+' : ''}${netRoi.toFixed(0)}%`
+						: '—';
+					$('roas').textContent = roas ? `${roas.toFixed(2)}×` : '—';
+					$('roasSub').textContent = roas
+						? `For every $1 spent, the client gets back ${fmtMoneyDec(roas)} in revenue.`
+						: 'Enter a budget to begin.';
+
+					$('breakevenOrders').textContent = ordersToBreakeven > 0
+						? `${Math.ceil(ordersToBreakeven).toLocaleString()} orders`
+						: '—';
+					$('breakevenFlight').textContent = breakevenFlight && breakevenFlight <= flights
+						? `Flight ${breakevenFlight} of ${flights} (≈ week ${breakevenFlight * 4})`
+						: (breakevenFlight ? `Beyond ${flights} flights — needs longer run` : '—');
+
+					const noBrainerEl = $('noBrainer').querySelector('strong');
+					if (!totalBudget || !aov) {
+						noBrainerEl.textContent = 'Fill out the form →';
+					} else if (ordersToBreakeven <= 0) {
+						noBrainerEl.textContent = '—';
+					} else {
+						const ordersInt = Math.ceil(ordersToBreakeven);
+						const perFlight = Math.ceil(ordersToBreakeven / flights);
+						noBrainerEl.textContent =
+							`Just ${ordersInt} order${ordersInt === 1 ? '' : 's'} across the campaign ` +
+							`(${perFlight} per 4 weeks) covers the entire ${fmtMoney(totalBudget)} spend.`;
+					}
+
+					const client = $('clientName').value.trim();
+					$('clientChip').textContent = client ? client : 'New campaign';
+
+					const mixBody = $('mixBody');
+					mixBody.innerHTML = '';
+					if (!rows.length) {
+						mixBody.innerHTML = '<tr><td colspan="4" class="empty">Select at least one venue.</td></tr>';
+					} else {
+						rows.sort((a, b) => b.spend - a.spend).forEach((r) => {
+							const tr = document.createElement('tr');
+							tr.innerHTML = `
+								<td>${r.name}</td>
+								<td>${fmtMoney(r.spend)}</td>
+								<td>${fmtInt(r.impressions)}</td>
+								<td style="font-size: 0.85em; color: rgb(var(--gray));">${r.audience}</td>
+							`;
+							mixBody.appendChild(tr);
+						});
+					}
+				}
+
+				function applyPreset(key) {
+					const p = INDUSTRY_PRESETS[key];
+					if (!p) return;
+					$('aov').value = p.aov;
+					$('margin').value = p.margin;
+					$('ltvMultiplier').value = p.ltv;
+					$('responseRate').value = p.rate;
+					recalc();
+				}
+
+				document.getElementById('plan-form').addEventListener('input', recalc);
+				document.getElementById('plan-form').addEventListener('change', recalc);
+				document.getElementById('industryPreset').addEventListener('change', (e) => {
+					if (e.target.value !== 'custom') applyPreset(e.target.value);
+				});
+				document.getElementById('balanceBtn').addEventListener('click', autoBalance);
+				document.getElementById('resetBtn').addEventListener('click', () => {
+					document.getElementById('plan-form').reset();
+					venueWrap.innerHTML = '';
+					location.reload();
+				});
+				document.getElementById('printBtn').addEventListener('click', () => window.print());
+
+				recalc();
+			})();
+		</script>
+	</body>
+</html>
