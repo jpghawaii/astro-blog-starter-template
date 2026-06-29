@@ -1,0 +1,360 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead
+			title="Advertising ROI Calculator | JPG Media"
+			description="Calculate the return on investment of your JPG Media campaign — based on cost per 4-week period, conversions, and average sale value."
+		/>
+	</head>
+	<body>
+		<Header />
+		<main class="roi-main">
+			<div class="roi-shell">
+				<div class="roi-header card">
+					<div class="roi-icon">📈</div>
+					<div>
+						<h1>Advertising ROI Calculator</h1>
+						<p>Calculate your advertising return on investment with JPGmedia.com</p>
+					</div>
+				</div>
+
+				<div class="card">
+					<h2 class="section-title">🎯 Campaign Details</h2>
+					<div class="grid-3">
+						<label class="field">
+							<span>💲 Advertising Cost per 4-Week Period ($)</span>
+							<input type="number" id="costPerPeriod" value="500" min="0" step="50" />
+							<small>(13 four-week periods per year)</small>
+						</label>
+						<label class="field">
+							<span>📅 Campaign Duration (4-Week Periods)</span>
+							<input type="number" id="campaignPeriods" value="3" min="1" max="13" step="1" />
+							<small>Number of periods (13 = full year)</small>
+						</label>
+						<label class="field">
+							<span>💲 Average Sale Value ($)</span>
+							<input type="number" id="avgSaleValue" value="50" min="0" step="10" />
+							<small>Average value per customer</small>
+						</label>
+						<label class="field">
+							<span>% Production / Materials Cost (%)</span>
+							<input type="number" id="profitMargin" value="30" min="0" max="100" step="0.5" />
+							<small>% of revenue for COGS / delivery / install</small>
+						</label>
+						<label class="field">
+							<span>% Conversion Rate (%) — Optional</span>
+							<input type="number" id="conversionRate" value="0.5" min="0" step="0.01" />
+							<small>Estimated conversion rate if known</small>
+						</label>
+						<label class="field">
+							<span>🎯 Direct Conversions</span>
+							<input type="number" id="directConversions" value="100" min="0" step="1" />
+							<small>Actual conversions tracked</small>
+						</label>
+						<label class="field">
+							<span>💲 Total Campaign Cost ($)</span>
+							<input type="text" id="campaignCost" readonly />
+							<small>Auto-calculated from cost × periods</small>
+						</label>
+					</div>
+				</div>
+
+				<div class="results-band">
+					<h2>Your Advertising ROI Results</h2>
+					<div class="results-grid">
+						<div class="result-tile">
+							<div class="result-label">Total ROI</div>
+							<div class="result-value" id="rRoi">—</div>
+						</div>
+						<div class="result-tile">
+							<div class="result-label">Gross Revenue</div>
+							<div class="result-value blue" id="rGross">—</div>
+						</div>
+						<div class="result-tile">
+							<div class="result-label">Net Revenue</div>
+							<div class="result-value indigo" id="rNet">—</div>
+							<div class="result-sub">After production costs</div>
+						</div>
+						<div class="result-tile">
+							<div class="result-label">Net Profit</div>
+							<div class="result-value" id="rProfit">—</div>
+						</div>
+					</div>
+					<div class="results-sub-grid">
+						<div class="mini">
+							<div class="mini-label">Campaign Duration</div>
+							<div class="mini-value" id="rDuration">— weeks</div>
+						</div>
+						<div class="mini">
+							<div class="mini-label">Production Costs</div>
+							<div class="mini-value" id="rProdCost">—</div>
+						</div>
+						<div class="mini">
+							<div class="mini-label">Total Conversions</div>
+							<div class="mini-value" id="rConv">—</div>
+						</div>
+						<div class="mini">
+							<div class="mini-label">Ad Cost Per Conversion</div>
+							<div class="mini-value" id="rCpc">—</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="grid-2">
+					<div class="card">
+						<h3>Understanding Your Results</h3>
+						<ul class="bullets">
+							<li><strong>Gross Revenue:</strong> Total sales before any costs (Conversions × Sale Value)</li>
+							<li><strong>Production Costs:</strong> Materials, installation, and delivery expenses (COGS)</li>
+							<li><strong>Net Revenue:</strong> Money left after production costs, before ad spend</li>
+							<li><strong>Net Profit:</strong> Final profit after all costs (production + advertising)</li>
+							<li><strong>ROI:</strong> Percentage return. 200% means $2 profit per $1 ad spend</li>
+							<li><strong>Benchmark:</strong> A good ROI is typically 200%+ (2:1 ratio)</li>
+						</ul>
+					</div>
+					<div class="card">
+						<h3>Tips to Improve ROI</h3>
+						<ul class="bullets">
+							<li>Track conversions accurately using unique codes or phone numbers</li>
+							<li>Target your ideal audience with relevant messaging</li>
+							<li>Test different ad variations to optimize performance</li>
+							<li>Monitor results regularly and adjust your strategy accordingly</li>
+						</ul>
+					</div>
+				</div>
+
+				<div class="card">
+					<h3>Calculation Formulas</h3>
+					<div class="grid-2 formulas">
+						<div><strong>Gross Revenue:</strong><br><code>Total Conversions × Average Sale Value</code></div>
+						<div><strong>Production Costs:</strong><br><code>Gross Revenue × (Production % / 100)</code></div>
+						<div><strong>Net Revenue:</strong><br><code>Gross Revenue − Production Costs</code></div>
+						<div><strong>Net Profit:</strong><br><code>Net Revenue − Campaign Cost</code></div>
+						<div><strong>ROI:</strong><br><code>(Net Profit / Campaign Cost) × 100</code></div>
+						<div><strong>ROAS:</strong><br><code>Gross Revenue / Campaign Cost</code></div>
+					</div>
+				</div>
+
+				<div class="cta-card">
+					<h3>Ready to boost your business with advertising?</h3>
+					<p>Contact our team today to discuss your advertising strategy and start seeing real returns on your investment.</p>
+					<div class="cta-buttons">
+						<a href="tel:808-429-7220" class="cta-btn">📞 Call Us: 808-429-7220</a>
+						<a href="mailto:jpg@jpgmedia.com" class="cta-btn">✉️ Email: jpg@jpgmedia.com</a>
+					</div>
+					<p class="cta-foot">Mention this ROI calculator when you contact us for special pricing!</p>
+				</div>
+			</div>
+		</main>
+		<Footer />
+
+		<style>
+			.roi-main { max-width: 1240px; margin: 0 auto; padding: 2em 1em 4em; }
+			.roi-shell { display: flex; flex-direction: column; gap: 1.2em; }
+			.card {
+				background: #fff; border-radius: 16px;
+				padding: 1.6em 1.8em;
+				box-shadow: 0 6px 28px rgba(0,0,0,0.08);
+			}
+			.roi-header {
+				display: flex; align-items: center; gap: 1.2em;
+				background: #fff;
+			}
+			.roi-icon {
+				font-size: 2.2em;
+				background: linear-gradient(135deg, #f97316, #ef4444);
+				width: 64px; height: 64px;
+				border-radius: 14px;
+				display: flex; align-items: center; justify-content: center;
+				color: #fff;
+				box-shadow: 0 8px 20px rgba(239, 68, 68, 0.35);
+			}
+			.roi-header h1 {
+				font-size: 1.9em; margin: 0;
+				color: #1f2937;
+			}
+			.roi-header p { margin: 0.25em 0 0; color: #6b7280; }
+			.section-title {
+				font-size: 1.3em; margin: 0 0 1em 0;
+				color: #1f2937;
+				display: flex; align-items: center; gap: 0.5em;
+			}
+			.grid-3 {
+				display: grid; gap: 1em;
+				grid-template-columns: repeat(3, minmax(0, 1fr));
+			}
+			.grid-2 {
+				display: grid; gap: 1em;
+				grid-template-columns: 1fr 1fr;
+			}
+			@media (max-width: 880px) {
+				.grid-3 { grid-template-columns: 1fr 1fr; }
+			}
+			@media (max-width: 600px) {
+				.grid-3, .grid-2 { grid-template-columns: 1fr; }
+			}
+			.field { display: flex; flex-direction: column; gap: 0.4em; }
+			.field > span {
+				font-size: 0.85em; font-weight: 700;
+				color: #374151;
+			}
+			.field small { color: #6b7280; font-size: 0.8em; }
+			.field input {
+				font-family: inherit; font-size: 1.05em;
+				padding: 0.7em 0.85em;
+				border: 2px solid #e5e7eb;
+				border-radius: 10px;
+				background: #fff;
+				transition: border-color 0.15s, box-shadow 0.15s;
+			}
+			.field input:focus {
+				outline: none;
+				border-color: #f97316;
+				box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.18);
+			}
+			.field input[readonly] {
+				background: #f3f4f6; cursor: not-allowed;
+				font-weight: 700; color: #374151;
+			}
+			.results-band {
+				background: linear-gradient(135deg, #f97316, #ef4444);
+				color: #fff;
+				border-radius: 18px;
+				padding: 1.8em 1.8em 1.5em;
+				box-shadow: 0 12px 30px rgba(239, 68, 68, 0.25);
+			}
+			.results-band h2 {
+				color: #fff; margin: 0 0 1em 0;
+				font-size: 1.4em;
+			}
+			.results-grid {
+				display: grid; gap: 0.8em;
+				grid-template-columns: repeat(4, minmax(0, 1fr));
+				margin-bottom: 1em;
+			}
+			.results-sub-grid {
+				display: grid; gap: 0.8em;
+				grid-template-columns: repeat(4, minmax(0, 1fr));
+			}
+			@media (max-width: 880px) {
+				.results-grid, .results-sub-grid { grid-template-columns: 1fr 1fr; }
+			}
+			.result-tile {
+				background: #fff; border-radius: 12px;
+				padding: 1em 1.1em;
+			}
+			.result-label {
+				font-size: 0.85em; color: #6b7280;
+				font-weight: 600;
+			}
+			.result-value {
+				font-size: 2em; font-weight: 700;
+				color: #16a34a;
+				line-height: 1.1;
+				margin-top: 0.1em;
+			}
+			.result-value.blue { color: #2563eb; }
+			.result-value.indigo { color: #4f46e5; }
+			.result-value.bad { color: #dc2626 !important; }
+			.result-value.neutral { color: #6b7280 !important; }
+			.result-sub { font-size: 0.78em; color: #6b7280; margin-top: 0.2em; }
+			.mini {
+				background: rgba(255,255,255,0.92);
+				border-radius: 12px;
+				padding: 0.7em 0.9em;
+			}
+			.mini-label { font-size: 0.75em; color: #6b7280; }
+			.mini-value { font-size: 1.3em; font-weight: 700; color: #1f2937; margin-top: 0.15em; }
+			.bullets {
+				margin: 0; padding-left: 1.2em;
+				display: flex; flex-direction: column; gap: 0.5em;
+				color: #374151; font-size: 0.95em;
+			}
+			.bullets li::marker { color: #f97316; }
+			.formulas div {
+				background: #f9fafb; border-radius: 10px;
+				padding: 0.8em 1em; font-size: 0.9em;
+			}
+			.formulas code {
+				display: block; margin-top: 0.3em;
+				font-size: 0.85em; color: #374151;
+				background: transparent; padding: 0;
+			}
+			.cta-card {
+				background: #fff; border-radius: 16px;
+				border: 2px solid #fed7aa;
+				padding: 2em; text-align: center;
+				box-shadow: 0 6px 28px rgba(0,0,0,0.08);
+			}
+			.cta-card h3 { font-size: 1.5em; margin: 0 0 0.5em; color: #1f2937; }
+			.cta-card p { color: #6b7280; margin: 0 0 1.2em; }
+			.cta-buttons {
+				display: flex; gap: 1em; justify-content: center; flex-wrap: wrap;
+				margin-bottom: 1em;
+			}
+			.cta-btn {
+				display: inline-block;
+				background: linear-gradient(135deg, #f97316, #ef4444);
+				color: #fff !important; text-decoration: none;
+				padding: 0.9em 1.5em; border-radius: 10px;
+				font-weight: 700;
+				box-shadow: 0 6px 16px rgba(239, 68, 68, 0.25);
+				transition: transform 0.1s, box-shadow 0.15s;
+			}
+			.cta-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(239, 68, 68, 0.35); }
+			.cta-foot { color: #6b7280; font-size: 0.9em; margin: 0; }
+			h3 { font-size: 1.2em; color: #1f2937; margin: 0 0 0.7em; }
+		</style>
+
+		<script is:inline>
+			(function () {
+				const $ = (id) => document.getElementById(id);
+				const num = (id) => parseFloat($(id).value) || 0;
+				const money = (n) => '$' + n.toLocaleString('en-US', { maximumFractionDigits: 2 });
+				const moneyInt = (n) => '$' + Math.round(n).toLocaleString('en-US');
+
+				function recalc() {
+					const costPerPeriod = num('costPerPeriod');
+					const periods = num('campaignPeriods');
+					const aov = num('avgSaleValue');
+					const directConv = num('directConversions');
+					const margin = num('profitMargin');
+
+					const cost = costPerPeriod * periods;
+					$('campaignCost').value = money(cost);
+
+					const totalConv = directConv > 0 ? directConv : 0;
+					const gross = totalConv * aov;
+					const prod = gross * (margin / 100);
+					const net = gross - prod;
+					const profit = net - cost;
+					const roi = cost > 0 ? (profit / cost) * 100 : 0;
+					const cpc = totalConv > 0 ? cost / totalConv : 0;
+					const weeks = periods * 4;
+					const isPositive = profit >= 0;
+
+					$('rRoi').textContent = cost ? `${roi.toFixed(2)}%` : '—';
+					$('rRoi').classList.toggle('neutral', !isPositive);
+					$('rGross').textContent = moneyInt(gross);
+					$('rNet').textContent = moneyInt(net);
+					$('rProfit').textContent = moneyInt(profit);
+					$('rProfit').classList.toggle('bad', !isPositive);
+
+					$('rDuration').textContent = `${weeks} weeks`;
+					$('rProdCost').textContent = moneyInt(prod);
+					$('rConv').textContent = Math.round(totalConv).toLocaleString();
+					$('rCpc').textContent = totalConv ? money(cpc) : '$0.00';
+				}
+
+				document.querySelectorAll('input').forEach((el) => el.addEventListener('input', recalc));
+				recalc();
+			})();
+		</script>
+	</body>
+</html>

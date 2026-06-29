@@ -502,14 +502,15 @@ import Footer from '../components/Footer.astro';
 
 		<script is:inline define:vars={{}}>
 			(function () {
+				// CPMs derived from JPG Media's actual rate card & inventory impressions
 				const VENUES = [
-					{ id: 'grocery', name: 'Grocery Retail Screens', defaultCpm: 18, audience: 'Adults 25–65, primary household shoppers, decision-makers' },
-					{ id: 'cstore', name: 'Convenience Store Screens', defaultCpm: 15, audience: 'Adults 18–54, commuters, impulse + quick-trip buyers' },
-					{ id: 'retail', name: 'Retail Store Screens', defaultCpm: 12, audience: 'In-market shoppers actively browsing categories' },
-					{ id: 'vehicle', name: 'Vehicle Exterior Advertising', defaultCpm: 4, audience: 'Mass-reach commuters, pedestrians, drive-by traffic' },
-					{ id: 'shopping', name: 'Shopping Center Screens', defaultCpm: 16, audience: 'Families, leisure shoppers, dwell-time visitors' },
-					{ id: 'hotel', name: 'Hotel Digital Screens', defaultCpm: 22, audience: 'Travelers, business visitors, tourists, affluent guests' },
-					{ id: 'mall', name: 'Mall Signage', defaultCpm: 14, audience: 'Diverse demos — youth, families, professionals' },
+					{ id: 'grocery',  name: 'Grocery Checkout Network (Times/Big Save/Shimas)', defaultCpm: 15.83, audience: 'Adults 25–65, primary household shoppers, decision-makers' },
+					{ id: 'cstore',   name: 'C-Store Digital (7-Eleven/Aloha/Hele)',              defaultCpm: 8.00,  audience: 'Adults 18–54, commuters, impulse + quick-trip buyers' },
+					{ id: 'retail',   name: 'Retail / Shopping Center Venues',                    defaultCpm: 2.17,  audience: 'In-market shoppers, Koko Marina, Hawaii Kai Towne Center' },
+					{ id: 'vehicle',  name: 'Mobile Billboard Fleet (Statewide)',                 defaultCpm: 1.93,  audience: 'Mass-reach commuters, pedestrians, Oahu routes' },
+					{ id: 'gas',      name: 'Gas Station Pump Tops (Aloha)',                      defaultCpm: 100.00,audience: 'Captive 5–7 min, 4–6 visits/month' },
+					{ id: 'hotel',    name: 'Hotel Digital Network (Alohilani + 10 more)',        defaultCpm: 5.00,  audience: 'Travelers, business visitors, tourists, affluent guests' },
+					{ id: 'billboard',name: 'Highway Billboards / Wallscapes',                    defaultCpm: 2.50,  audience: 'High-volume drive-by, Oahu highways' },
 				];
 
 				const INDUSTRY_PRESETS = {
@@ -529,7 +530,7 @@ import Footer from '../components/Footer.astro';
 				// Render venue rows
 				const venueWrap = $('venues');
 				const defaultAlloc = Math.round(100 / 3); // 3 venues on by default
-				const DEFAULT_ON = ['grocery', 'cstore', 'vehicle'];
+				const DEFAULT_ON = ['vehicle', 'cstore', 'retail'];
 				VENUES.forEach((v) => {
 					const on = DEFAULT_ON.includes(v.id);
 					const row = document.createElement('div');

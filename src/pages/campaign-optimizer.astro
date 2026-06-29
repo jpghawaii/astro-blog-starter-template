@@ -1,0 +1,604 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead
+			title="Campaign Optimizer | JPG Media"
+			description="Smart advertising placement recommendations across JPG Media's Hawaii inventory — by budget, objective, target areas, and ad format."
+		/>
+	</head>
+	<body>
+		<Header />
+		<main class="opt-main">
+			<div class="opt-container">
+				<div class="opt-header">
+					<h1>🎯 JPG Media Campaign Optimizer</h1>
+					<p>Smart advertising placement recommendations for Hawaii's premier media inventory</p>
+				</div>
+
+				<div class="opt-grid">
+					<div class="input-panel">
+						<h2 class="panel-title">Campaign Requirements</h2>
+
+						<div class="form-group">
+							<label for="budget">Campaign Budget ($)</label>
+							<input type="number" id="budget" class="form-control" placeholder="e.g., 15000" min="500" step="100" value="15000" />
+						</div>
+
+						<div class="form-group">
+							<label for="objective">Campaign Goal / Objective</label>
+							<select id="objective" class="form-control">
+								<option value="">Select objective…</option>
+								<option value="brand_awareness">Brand Awareness</option>
+								<option value="local_reach">Local Market Reach</option>
+								<option value="tourist_targeting">Tourist Targeting</option>
+								<option value="retail_traffic">Retail Traffic Drive</option>
+								<option value="event_promotion">Event Promotion</option>
+								<option value="product_launch">Product Launch</option>
+							</select>
+						</div>
+
+						<div class="form-group">
+							<label for="target_cities">Target Cities / Areas</label>
+							<input type="text" id="target_cities" class="form-control" placeholder="e.g., Honolulu, Waikiki, Kailua" />
+						</div>
+
+						<div class="form-group">
+							<label for="pois">Points of Interest (POIs)</label>
+							<textarea id="pois" class="form-control" rows="3" placeholder="e.g., Waikiki Beach, Pearl Harbor, Hanauma Bay, Shopping Centers"></textarea>
+						</div>
+
+						<div class="form-group">
+							<label for="duration">Campaign Duration (Days)</label>
+							<input type="number" id="duration" class="form-control" placeholder="e.g., 30" min="7" max="365" value="30" />
+						</div>
+
+						<div class="form-group">
+							<label for="ad_format">Preferred Ad Format</label>
+							<select id="ad_format" class="form-control">
+								<option value="">Any format</option>
+								<option value="retail/venues">Retail / Venue Displays</option>
+								<option value="digital">Digital Screens (C-Stores / Hotels)</option>
+								<option value="mobile">Mobile Billboards (Statewide)</option>
+								<option value="billboard">Static Billboards</option>
+								<option value="wallscape">Wallscapes</option>
+								<option value="transit">Transit Advertising</option>
+								<option value="hotel">Hotel Digital Network</option>
+								<option value="grocery">Grocery Store (Checkout / Dividers)</option>
+								<option value="gas_station">Gas Station Pump Tops</option>
+							</select>
+						</div>
+
+						<button type="button" class="btn" id="generateBtn">🚀 Generate Campaign Recommendations</button>
+					</div>
+
+					<div class="results-panel">
+						<div class="loading" id="loading">
+							<div class="spinner"></div>
+							<p>Analyzing your requirements and optimizing ad placements…</p>
+						</div>
+
+						<div id="results" class="results-container">
+							<div class="summary-section">
+								<h2 class="summary-title">📊 Campaign Summary</h2>
+								<div id="campaign-summary"></div>
+							</div>
+							<h2 class="rec-title">🎯 Recommended Ad Placements</h2>
+							<div id="recommendations"></div>
+						</div>
+
+						<div id="welcome-message" class="welcome">
+							<h3>🌺 Welcome to JPG Media Campaign Optimizer!</h3>
+							<p>Hawaii's premier advertising network with comprehensive statewide coverage. Get intelligent campaign recommendations based on your budget, objectives, and target audience.</p>
+							<div class="welcome-card">
+								<h4>🎯 Your Complete Media Network</h4>
+								<div class="net-grid">
+									<div><strong>🏢 Static Locations:</strong><br>196+ premium ad spaces</div>
+									<div><strong>📱 Digital Network:</strong><br>150+ C-store screens</div>
+									<div><strong>🚐 Mobile Fleet:</strong><br>Statewide vehicle coverage</div>
+									<div><strong>🏨 Hotel Network:</strong><br>11 premium properties</div>
+									<div><strong>⛽ Gas Stations:</strong><br>Aloha &amp; Shell pump tops</div>
+									<div><strong>🛒 Grocery Network:</strong><br>26 checkout locations</div>
+								</div>
+								<div class="net-foot">
+									<strong>Coverage:</strong> Oahu • Maui • Kauai • Big Island<br>
+									<strong>Formats:</strong> Digital, Static, Mobile, Transit, Grocery, Hotels<br>
+									<strong>📊 Volume Pricing:</strong> Bulk discounts for multiple units (5+ vehicles, 10+ digital screens, etc.)
+								</div>
+							</div>
+							<div class="welcome-tag">
+								<strong>✨ AI-Powered Optimization</strong><br>
+								Smart targeting • Budget efficiency • Geographic precision • Audience insights
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+		<Footer />
+
+		<style>
+			.opt-main {
+				max-width: 1400px; margin: 0 auto;
+				padding: 1.5em 1em 4em;
+			}
+			.opt-container {
+				background: #fff; border-radius: 20px;
+				box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+				overflow: hidden;
+			}
+			.opt-header {
+				background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+				color: #fff; padding: 2.2em 1.5em;
+				text-align: center;
+			}
+			.opt-header h1 { font-size: 2.2em; margin: 0 0 0.35em; color: #fff; }
+			.opt-header p { font-size: 1.05em; opacity: 0.9; margin: 0; }
+			.opt-grid { display: grid; grid-template-columns: 1fr 1fr; min-height: 70vh; }
+			@media (max-width: 980px) { .opt-grid { grid-template-columns: 1fr; } }
+			.input-panel {
+				padding: 2.2em; background: #f8f9fa;
+				border-right: 1px solid #e9ecef;
+			}
+			.results-panel { padding: 2.2em; background: #fff; }
+			.panel-title { color: #2c3e50; margin: 0 0 1.5em; font-size: 1.4em; }
+			.form-group { margin-bottom: 1.3em; }
+			.form-group label {
+				display: block; margin-bottom: 0.4em;
+				font-weight: 600; color: #2c3e50;
+				font-size: 0.78em; text-transform: uppercase;
+				letter-spacing: 0.08em;
+			}
+			.form-control {
+				width: 100%; padding: 0.75em 1em;
+				border: 2px solid #e9ecef; border-radius: 10px;
+				font-size: 1em; background: #fff;
+				font-family: inherit;
+				transition: border-color 0.2s, box-shadow 0.2s;
+			}
+			.form-control:focus {
+				border-color: #3498db; outline: none;
+				box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+			}
+			textarea.form-control { resize: vertical; }
+			.btn {
+				background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+				color: #fff; border: none;
+				padding: 1em 1.6em; border-radius: 10px;
+				font-size: 0.95em; font-weight: 700;
+				cursor: pointer; width: 100%;
+				text-transform: uppercase; letter-spacing: 0.08em;
+				transition: transform 0.1s, box-shadow 0.2s;
+				font-family: inherit;
+			}
+			.btn:hover { transform: translateY(-1px); box-shadow: 0 10px 20px rgba(0,0,0,0.15); }
+			.btn:active { transform: translateY(0); }
+
+			.results-container { display: none; }
+			.results-container.show { display: block; }
+			.loading { display: none; text-align: center; padding: 3em 1em; color: #7f8c8d; }
+			.loading.show { display: block; }
+			.spinner {
+				width: 40px; height: 40px;
+				border: 4px solid #f3f3f3;
+				border-top: 4px solid #3498db;
+				border-radius: 50%;
+				animation: opt-spin 1s linear infinite;
+				margin: 0 auto 1.2em;
+			}
+			@keyframes opt-spin { to { transform: rotate(360deg); } }
+
+			.summary-section {
+				background: linear-gradient(135deg, #e8f4fd 0%, #c3e3f7 100%);
+				border: 2px solid #3498db; border-radius: 15px;
+				padding: 1.5em; margin-bottom: 1.5em;
+			}
+			.summary-title { font-size: 1.4em; color: #2c3e50; margin: 0 0 1em; }
+			.rec-title { color: #2c3e50; margin: 0 0 1em; font-size: 1.4em; }
+
+			.metric {
+				background: #fff; border-radius: 8px;
+				padding: 0.7em; text-align: center;
+			}
+			.metric-value { font-size: 1.3em; font-weight: 700; color: #3498db; }
+			.metric-label { font-size: 0.7em; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.2em; }
+
+			.result-card {
+				background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+				border-radius: 14px; padding: 1.4em;
+				margin-bottom: 1.2em;
+				border-left: 5px solid #3498db;
+				transition: transform 0.15s, box-shadow 0.15s;
+			}
+			.result-card:hover { transform: translateX(4px); box-shadow: 0 8px 18px rgba(0,0,0,0.08); }
+			.result-title { font-size: 1.1em; font-weight: 700; color: #2c3e50; margin-bottom: 0.25em; }
+			.result-location { color: #7f8c8d; font-size: 0.88em; margin-bottom: 0.5em; }
+			.result-metrics {
+				display: grid; gap: 0.8em;
+				grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+				margin-top: 0.8em;
+			}
+			.tag {
+				display: inline-block; background: #3498db; color: #fff;
+				padding: 0.25em 0.6em; border-radius: 12px;
+				font-size: 0.72em; margin: 0.15em 0.15em 0 0;
+			}
+			.reasoning {
+				background: #f8f9fa; border-radius: 10px;
+				padding: 1em; margin-top: 0.8em;
+				border-left: 4px solid #27ae60;
+			}
+			.reasoning-title { font-weight: 700; color: #27ae60; margin-bottom: 0.5em; }
+			.reasoning ul { margin: 0 0 0.8em; padding-left: 1.3em; }
+			.reasoning .spec-box {
+				background: #fff; border-radius: 8px;
+				padding: 0.8em; margin-top: 0.6em;
+			}
+			.reasoning .spec-box .lbl { font-weight: 700; color: #2c3e50; margin-bottom: 0.25em; }
+			.reasoning .spec-box .val { font-size: 0.85em; color: #555; margin-bottom: 0.6em; }
+
+			.welcome {
+				text-align: center; padding: 3em 1em;
+				color: #7f8c8d;
+			}
+			.welcome h3 { margin-bottom: 1em; color: #2c3e50; font-size: 1.5em; }
+			.welcome p { font-size: 1em; line-height: 1.6; max-width: 540px; margin: 0 auto; }
+			.welcome-card {
+				margin-top: 1.5em; font-size: 0.9em;
+				background: #f8f9fa; padding: 1.4em; border-radius: 12px;
+				text-align: left;
+			}
+			.welcome-card h4 { color: #2c3e50; margin: 0 0 1em; text-align: center; }
+			.net-grid {
+				display: grid; gap: 1em;
+				grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+			}
+			.net-foot {
+				margin-top: 1em; color: #555;
+				font-size: 0.88em; line-height: 1.6;
+			}
+			.welcome-tag {
+				margin-top: 1.2em; padding: 1em;
+				background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+				color: #fff; border-radius: 10px;
+				font-size: 0.95em;
+			}
+		</style>
+
+		<script is:inline>
+			(function () {
+				const inventoryData = [
+					{ 'face id': 'KMC-P1A', name_or_intersection: 'Prime Wallscape - Exit Intersection', unit_type: 'wallscape', lat: 21.277515, lon: -157.705064, rate_card_price: 1250, impressions: 246000, city: 'Honolulu', address: '7192 Kalanianaole Hwy, Honolulu, HI 96825', description: 'Massive 7x8 wall at exit intersection/stop light — 3.2M annual visitors', size: "7' x 8'", venue: 'Koko Marina Center', production_cost: 750 },
+					{ 'face id': 'KMC-C5', name_or_intersection: 'Petco Entry/Exit Combo', unit_type: 'retail/venues', lat: 21.277515, lon: -157.705064, rate_card_price: 650, impressions: 300000, city: 'Honolulu', address: '7192 Kalanianaole Hwy, Honolulu, HI 96825', description: 'High-traffic Petco entrance — 3 positions available', size: '53" x 23"', venue: 'Koko Marina Center' },
+					{ 'face id': 'HKTC-2P1A', name_or_intersection: 'Costco Facing Pillars', unit_type: 'retail/venues', lat: 21.2844, lon: -157.7113, rate_card_price: 850, impressions: 500000, city: 'Honolulu', address: 'Hawaii Kai Towne Center, Honolulu, HI', description: 'High visibility pillars facing Costco — busiest shopping center in Hawaii Kai', size: "4.5' x 8'", venue: 'Hawaii Kai Towne Center' },
+					{ 'face id': 'MOB-001', name_or_intersection: 'Mobile Billboard - Oahu Route', unit_type: 'mobile', lat: 21.3099, lon: -157.8581, rate_card_price: 1450, impressions: 750000, city: 'Statewide', address: 'Oahu Routes — Airport to Waikiki', description: 'Moving billboard covering all major Oahu routes — 750K impressions per 4 weeks', size: '80" x 89"', venue: 'Mobile Fleet' },
+					{ 'face id': 'GRO-TIMES-01', name_or_intersection: 'Times Supermarket Checkout', unit_type: 'grocery', lat: 21.3099, lon: -157.8581, rate_card_price: 950, impressions: 60000, city: 'Honolulu', address: 'Times Supermarket Locations', description: 'Checkout domination — reach 60–70K shoppers monthly', size: 'Multiple formats', venue: 'Times/Big Save/Shimas Network' },
+					{ 'face id': 'DIG-7ELV-01', name_or_intersection: '7-Eleven Digital Screens', unit_type: 'digital', lat: 21.3099, lon: -157.8581, rate_card_price: 400, impressions: 50000, city: 'Statewide', address: '67 7-Eleven Stores Statewide', description: 'High-visibility digital screens in 150+ C-store locations', size: 'Digital — 15 sec loop', venue: '7-Eleven/Aloha/Hele Network' },
+					{ 'face id': 'HTL-ALO-01', name_or_intersection: 'Alohilani Resort Digital Screens', unit_type: 'hotel', lat: 21.2761, lon: -157.8257, rate_card_price: 500, impressions: 100000, city: 'Honolulu', address: 'Alohilani Resort Waikiki Beach', description: 'Premium hotel lobby and elevator screens — affluent audience', size: 'Digital — 15 sec', venue: 'Premium Hotel Network' },
+					{ 'face id': 'GAS-ALO-01', name_or_intersection: 'Aloha Gas Pump Tops', unit_type: 'gas_station', lat: 21.3099, lon: -157.8581, rate_card_price: 500, impressions: 5000, city: 'Statewide', address: 'Aloha Gas Stations', description: 'Captive audience 5–7 minutes — 4–6 visits per month', size: '20" x 17"', venue: 'Aloha Gas Network' },
+					{ 'face id': 'BILL-HWY-01', name_or_intersection: 'Highway Billboard Network', unit_type: 'billboard', lat: 21.3099, lon: -157.8581, rate_card_price: 2500, impressions: 1000000, city: 'Oahu', address: 'Major Highway Locations', description: 'High-impact highway billboards — maximum exposure', size: 'Various sizes', venue: 'Highway Network' },
+					{ 'face id': 'TRA-WAI-01', name_or_intersection: 'Waikiki Shuttle Network', unit_type: 'transit', lat: 21.2761, lon: -157.8257, rate_card_price: 800, impressions: 200000, city: 'Honolulu', address: 'Waikiki Tourist Areas', description: 'Tourist shuttle network — high-value visitor audience', size: 'Vehicle wraps', venue: 'Transit Network' },
+				];
+
+				const BULK_PRICING = {
+					mobile: [{ min: 1, max: 5, price: 1450, label: '1–5 Vehicles' }, { min: 6, max: 10, price: 1350, label: '6–10 Vehicles' }, { min: 11, max: 999, price: 1250, label: '11+ Vehicles' }],
+					digital: [{ min: 1, max: 4, price: 400, label: '1–4 Venues' }, { min: 5, max: 10, price: 300, label: '5–10 Venues' }, { min: 11, max: 20, price: 200, label: '11–20 Venues' }, { min: 21, max: 999, price: 150, label: '21+ Venues' }],
+					hotel: [{ min: 1, max: 1, price: 500, label: 'Single Hotel' }, { min: 2, max: 5, price: 450, label: '2–5 Hotels' }, { min: 6, max: 999, price: 400, label: '6+ Hotels' }],
+					grocery: [{ min: 1, max: 3, price: 950, label: '1–3 Stores' }, { min: 4, max: 10, price: 850, label: '4–10 Stores' }, { min: 11, max: 999, price: 750, label: '11+ Stores' }],
+					gas_station: [{ min: 1, max: 5, price: 500, label: '1–5 Stations' }, { min: 6, max: 15, price: 450, label: '6–15 Stations' }, { min: 16, max: 999, price: 400, label: '16+ Stations' }],
+					'retail/venues': [{ min: 1, max: 3, price: 650, label: '1–3 Venues' }, { min: 4, max: 10, price: 600, label: '4–10 Venues' }, { min: 11, max: 999, price: 550, label: '11+ Venues' }],
+				};
+
+				function getBulkPricing(unitType, quantity) {
+					const tiers = BULK_PRICING[unitType] || [{ min: 1, max: 999, price: 500, label: 'Standard Rate' }];
+					for (const tier of tiers) {
+						if (quantity >= tier.min && quantity <= tier.max) {
+							return { ...tier, savings: quantity > 1 ? (tiers[0].price - tier.price) * quantity : 0 };
+						}
+					}
+					return tiers[tiers.length - 1];
+				}
+
+				function calculateQuantityOptions(locations, budget, unitType) {
+					const grouped = locations.filter((loc) => loc.unit_type === unitType);
+					if (!grouped.length) return [];
+					const base = grouped[0];
+					const options = [];
+					for (let qty = 1; qty <= Math.min(15, grouped.length * 5); qty++) {
+						const pricing = getBulkPricing(unitType, qty);
+						const totalCost = pricing.price * qty;
+						const totalImpressions = (base.impressions || 0) * qty;
+						if (totalCost <= budget) {
+							options.push({
+								quantity: qty, unitPrice: pricing.price,
+								totalCost, totalImpressions,
+								savings: pricing.savings, label: pricing.label,
+								cpm: totalImpressions > 0 ? (totalCost / totalImpressions) * 1000 : 0,
+								coverage: qty === 1 ? 'Single unit' : qty <= 3 ? 'Limited coverage' : qty <= 7 ? 'Good coverage' : 'Extensive coverage',
+							});
+						}
+					}
+					return options;
+				}
+
+				function scoreLocation(location, criteria) {
+					let score = 0;
+					const reasons = [];
+					const price = parseFloat(location.rate_card_price) || 0;
+					const impressions = parseInt(location.impressions) || 0;
+					const cpm = impressions > 0 ? (price / impressions) * 1000 : 999;
+
+					if (cpm < 5) { score += 35; reasons.push('Excellent CPM efficiency'); }
+					else if (cpm < 10) { score += 25; reasons.push('Good CPM efficiency'); }
+					else if (cpm < 20) { score += 15; reasons.push('Competitive CPM'); }
+
+					if (criteria.adFormat && location.unit_type === criteria.adFormat) {
+						score += 25; reasons.push('Matches preferred ad format');
+					}
+
+					switch (location.unit_type) {
+						case 'mobile':  score += 20; reasons.push('Statewide mobile coverage'); break;
+						case 'digital': score += 15; reasons.push('Digital flexibility & targeting'); break;
+						case 'hotel':
+							score += 25;
+							if (criteria.objective === 'tourist_targeting') { score += 20; reasons.push('Premium hotel audience — perfect for tourism'); }
+							break;
+						case 'grocery':
+							score += 20;
+							if (criteria.objective === 'local_reach') { score += 15; reasons.push('Captive grocery audience — ideal for local campaigns'); }
+							break;
+						case 'gas_station': score += 18; reasons.push('Captive audience 5–7 minutes'); break;
+					}
+
+					if (criteria.targetCities && criteria.targetCities.length) {
+						const cityMatch = criteria.targetCities.some((city) =>
+							(location.city && location.city.toLowerCase().includes(city.toLowerCase())) ||
+							(location.address && location.address.toLowerCase().includes(city.toLowerCase()))
+						);
+						if (cityMatch) { score += 20; reasons.push('Located in target area'); }
+					}
+
+					switch (criteria.objective) {
+						case 'tourist_targeting':
+							if (location.venue && (location.venue.includes('Waikiki') || location.venue.includes('Hotel'))) { score += 25; reasons.push('Prime tourist destination'); }
+							if (location.city === 'Honolulu') { score += 15; reasons.push('Tourist hub location'); }
+							break;
+						case 'local_reach':
+							if (location.unit_type === 'grocery' || location.unit_type === 'gas_station') { score += 20; reasons.push('Local daily-use venue'); }
+							if (location.unit_type === 'retail/venues') { score += 15; reasons.push('Community retail location'); }
+							break;
+						case 'brand_awareness':
+							if (impressions > 500000) { score += 25; reasons.push('Massive brand exposure'); }
+							if (location.unit_type === 'mobile' || location.unit_type === 'billboard') { score += 20; reasons.push('High-impact format for awareness'); }
+							break;
+						case 'retail_traffic':
+							if (location.venue && (location.venue.includes('Center') || location.venue.includes('Mall'))) { score += 25; reasons.push('Shopping center location'); }
+							break;
+						case 'event_promotion':
+							if (location.unit_type === 'digital') { score += 20; reasons.push('Digital allows quick creative updates'); }
+							if (location.unit_type === 'mobile')  { score += 18; reasons.push('Mobile coverage for event awareness'); }
+							break;
+					}
+
+					if (impressions > 1000000) { score += 15; reasons.push('Premium high-volume location'); }
+					else if (impressions > 500000) { score += 12; reasons.push('High visibility location'); }
+					else if (impressions > 100000) { score += 8;  reasons.push('Good exposure level'); }
+
+					if (location.venue) {
+						const premium = ['Koko Marina', 'Hawaii Kai', 'Waikiki', 'Alohilani'];
+						if (premium.some((v) => location.venue.includes(v))) { score += 10; reasons.push('Premium venue location'); }
+					}
+
+					if (price <= criteria.budget / 8) { score += 10; reasons.push('Excellent budget fit'); }
+					else if (price <= criteria.budget / 5) { score += 5; reasons.push('Good budget fit'); }
+
+					return { score, reasons };
+				}
+
+				function getFormatSpecs(unitType, size) {
+					const specs = {
+						digital: 'Digital: 1920×1080px, .PNG/.JPG/.MP4, 15-sec loop, RGB',
+						mobile: 'Vehicle Rear: 80"×89", Print ready, CMYK+bleed, Vector preferred',
+						hotel: 'Digital: 1920×1080px (landscape) or 1080×1920px (portrait), .PNG/.JPG/.MP4',
+						grocery: 'Print: 14.75"×2.375", CMYK, 300 DPI, Vector, fonts outlined',
+						gas_station: 'Print: 20"×17", CMYK, 300 DPI, Vector preferred, 2-week production',
+						'retail/venues': 'Print: Variable sizes, CMYK, 300 DPI, Vector preferred',
+						billboard: 'Large Format: Variable, CMYK, High-res, Vector required',
+						wallscape: 'Print: Variable sizes, CMYK, 300 DPI, Weather resistant',
+						transit: 'Vehicle Wrap: Full coverage, CMYK+bleed, Contour cut ready',
+					};
+					return specs[unitType] || ('Print: ' + (size || 'Standard') + ', CMYK, 300 DPI');
+				}
+
+				function getProductionNotes(unitType) {
+					const notes = {
+						digital: 'Same-day posting • Easy creative updates • No production costs',
+						mobile: '2-week production • Statewide coverage • 750K+ impressions per month',
+						hotel: 'Affluent audience • Multiple daily exposures • Premium locations',
+						grocery: 'Captive audience • 60–70K monthly reach • 1-year minimum',
+						gas_station: '5–7 min engagement • 4–6 monthly frequency • Eye-level placement',
+						'retail/venues': '2-week production • High foot traffic • Local market focus',
+						billboard: 'Maximum impact • Highway visibility • Weather resistant',
+						wallscape: 'Large format impact • Strategic locations • 2-week production',
+						transit: 'Mobile coverage • Tourist routes • Dynamic exposure',
+					};
+					return notes[unitType] || '2-week standard production timeline';
+				}
+
+				function getStrategyText(objective) {
+					const s = {
+						brand_awareness: 'Focus on high-traffic locations with maximum visibility and impressions to build brand recognition across Hawaii.',
+						local_reach: 'Target retail venues and community spaces where locals frequent for authentic local market penetration.',
+						tourist_targeting: 'Prioritize Honolulu and Waikiki locations near tourist attractions and high-traffic visitor areas.',
+						retail_traffic: 'Strategic placement near shopping centers and retail corridors to drive foot traffic and conversions.',
+						event_promotion: 'High-visibility locations with flexible scheduling to maximize event awareness and attendance.',
+						product_launch: 'Premium locations with strong demographics and high engagement rates for maximum product exposure.',
+					};
+					return s[objective] || 'Balanced approach optimizing for cost-efficiency and reach across your target market.';
+				}
+
+				async function generateRecommendations() {
+					try {
+						const budget = parseFloat(document.getElementById('budget').value);
+						const objective = document.getElementById('objective').value;
+						const targetCitiesRaw = document.getElementById('target_cities').value;
+						const pois = document.getElementById('pois').value;
+						const duration = parseInt(document.getElementById('duration').value) || 30;
+						const adFormat = document.getElementById('ad_format').value;
+
+						if (!budget || budget < 500) { alert('Please enter a budget of at least $500'); return; }
+
+						document.getElementById('loading').classList.add('show');
+						document.getElementById('welcome-message').style.display = 'none';
+						document.getElementById('results').classList.remove('show');
+
+						const targetCities = targetCitiesRaw ? targetCitiesRaw.split(',').map((c) => c.trim()).filter(Boolean) : [];
+						const criteria = { budget, objective, targetCities, pois, duration, adFormat };
+
+						await new Promise((r) => setTimeout(r, 800));
+
+						const availableInventory = inventoryData.filter((l) => parseFloat(l.rate_card_price) > 0);
+						const scored = availableInventory.map((loc) => {
+							const { score, reasons } = scoreLocation(loc, criteria);
+							return { ...loc, score, reasons, price: parseFloat(loc.rate_card_price), impressions: parseInt(loc.impressions) || 0 };
+						});
+						scored.sort((a, b) => b.score - a.score);
+
+						const groupedByType = {};
+						scored.forEach((l) => { (groupedByType[l.unit_type] = groupedByType[l.unit_type] || []).push(l); });
+
+						let remainingBudget = budget;
+						const bulkRecommendations = [];
+						const scalable = ['mobile', 'digital', 'hotel', 'grocery', 'gas_station'];
+						for (const format of scalable) {
+							if (!groupedByType[format]) continue;
+							const options = calculateQuantityOptions(groupedByType[format], remainingBudget, format);
+							if (!options.length) continue;
+							const best = options[options.length - 1];
+							const template = groupedByType[format][0];
+							bulkRecommendations.push({
+								...template,
+								isBulkRecommendation: true,
+								bulkQuantity: best.quantity,
+								bulkOptions: options,
+								price: best.totalCost,
+								impressions: best.totalImpressions,
+								unitPrice: best.unitPrice,
+								savings: best.savings,
+								coverage: best.coverage,
+								reasons: [
+									...template.reasons,
+									best.quantity + ' units for ' + best.coverage,
+									best.savings > 0 ? ('$' + best.savings.toLocaleString() + ' volume discount') : 'Standard pricing',
+								],
+							});
+						}
+
+						const recommendations = [];
+						let totalImpressions = 0;
+						for (const bulk of bulkRecommendations) {
+							if (remainingBudget >= bulk.price && recommendations.length < 8) {
+								recommendations.push(bulk);
+								remainingBudget -= bulk.price;
+								totalImpressions += bulk.impressions;
+							}
+						}
+						for (const loc of scored) {
+							if (recommendations.length >= 12) break;
+							if (remainingBudget < loc.price) continue;
+							const alreadyBulk = recommendations.some((rec) => rec.isBulkRecommendation && rec.unit_type === loc.unit_type);
+							if (alreadyBulk) continue;
+							recommendations.push(loc);
+							remainingBudget -= loc.price;
+							totalImpressions += loc.impressions;
+						}
+						if (!recommendations.length) {
+							scored.slice(0, 3).forEach((l) => { recommendations.push(l); totalImpressions += l.impressions; });
+							remainingBudget = budget - recommendations.reduce((s, r) => s + r.price, 0);
+						}
+
+						displayResults(recommendations, {
+							totalBudget: budget,
+							usedBudget: budget - remainingBudget,
+							remainingBudget,
+							totalImpressions,
+							duration,
+							objective,
+						});
+						document.getElementById('loading').classList.remove('show');
+						document.getElementById('results').classList.add('show');
+					} catch (error) {
+						console.error('Error generating recommendations:', error);
+						document.getElementById('loading').classList.remove('show');
+						document.getElementById('results').innerHTML =
+							'<div style="text-align:center;padding:2em;color:#e74c3c;">' +
+							'<h3>⚠️ Something went wrong</h3>' +
+							'<p>' + error.message + '</p>' +
+							'<button class="btn" id="retryBtn" style="width:auto;padding:0.6em 1.4em;margin-top:1em;">🔄 Try Again</button></div>';
+						document.getElementById('results').classList.add('show');
+						const retry = document.getElementById('retryBtn');
+						if (retry) retry.addEventListener('click', generateRecommendations);
+					}
+				}
+
+				function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+				function displayResults(recommendations, summary) {
+					const avgCpm = summary.totalImpressions > 0
+						? ((summary.usedBudget / summary.totalImpressions) * 1000).toFixed(2)
+						: '0.00';
+					const summaryHtml =
+						'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1em;">' +
+							'<div class="metric"><div class="metric-value">$' + summary.usedBudget.toLocaleString() + '</div><div class="metric-label">Budget Allocated</div></div>' +
+							'<div class="metric"><div class="metric-value">' + recommendations.length + '</div><div class="metric-label">Ad Placements</div></div>' +
+							'<div class="metric"><div class="metric-value">' + summary.totalImpressions.toLocaleString() + '</div><div class="metric-label">Total Impressions</div></div>' +
+							'<div class="metric"><div class="metric-value">$' + avgCpm + '</div><div class="metric-label">Average CPM</div></div>' +
+						'</div>' +
+						'<div style="margin-top:1em;padding:1em;background:#fff;border-radius:10px;">' +
+							'<strong>Campaign Strategy:</strong> ' + escapeHtml(getStrategyText(summary.objective)) +
+						'</div>';
+					document.getElementById('campaign-summary').innerHTML = summaryHtml;
+
+					const recHtml = recommendations.map((rec, i) => (
+						'<div class="result-card">' +
+							'<div>' +
+								'<div class="result-title">#' + (i + 1) + ' — ' + escapeHtml(rec.name_or_intersection || rec['face id']) + '</div>' +
+								'<div class="result-location">📍 ' + escapeHtml(rec.address || (rec.city + ', Hawaii')) + '</div>' +
+								'<div style="margin:0.5em 0;">' +
+									'<span class="tag">' + escapeHtml(rec.unit_type) + '</span>' +
+									'<span class="tag">Score: ' + rec.score + '</span>' +
+									(rec.venue ? '<span class="tag">' + escapeHtml(rec.venue) + '</span>' : '') +
+									(rec.isBulkRecommendation ? '<span class="tag" style="background:#27ae60;">' + rec.bulkQuantity + ' units</span>' : '') +
+								'</div>' +
+							'</div>' +
+							'<div class="result-metrics">' +
+								'<div class="metric"><div class="metric-value">$' + rec.price.toLocaleString() + '</div><div class="metric-label">Cost</div></div>' +
+								'<div class="metric"><div class="metric-value">' + rec.impressions.toLocaleString() + '</div><div class="metric-label">Impressions</div></div>' +
+								'<div class="metric"><div class="metric-value">$' + (rec.impressions > 0 ? ((rec.price / rec.impressions) * 1000).toFixed(2) : 'N/A') + '</div><div class="metric-label">CPM</div></div>' +
+								'<div class="metric"><div class="metric-value">' + escapeHtml(rec.size || 'Standard') + '</div><div class="metric-label">Size</div></div>' +
+							'</div>' +
+							'<div class="reasoning">' +
+								'<div class="reasoning-title">💡 Why This Location?</div>' +
+								'<ul>' + rec.reasons.map((r) => '<li>' + escapeHtml(r) + '</li>').join('') + '</ul>' +
+								'<div class="spec-box">' +
+									'<div class="lbl">🎨 Creative Specifications:</div>' +
+									'<div class="val">' + escapeHtml(getFormatSpecs(rec.unit_type, rec.size)) + '</div>' +
+									'<div class="lbl">⚡ Production Notes:</div>' +
+									'<div class="val">' + escapeHtml(getProductionNotes(rec.unit_type)) + '</div>' +
+								'</div>' +
+							'</div>' +
+						'</div>'
+					)).join('');
+					document.getElementById('recommendations').innerHTML = recHtml;
+				}
+
+				document.getElementById('generateBtn').addEventListener('click', generateRecommendations);
+			})();
+		</script>
+	</body>
+</html>
