@@ -4,6 +4,24 @@ export const fmt = (n: number | string | null | undefined, digits = 0) =>
   n == null || n === "" ? "unavailable" : Number(n).toLocaleString("en-US", { maximumFractionDigits: digits, minimumFractionDigits: digits });
 export const pct = (n: number | null | undefined, digits = 1) => (n == null ? "unavailable" : `${(n * 100).toFixed(digits)}%`);
 
+export const OBS_LABEL: Record<string, string> = {
+  workers_within_400m: "Jobs located within 400 m (workplace)", workers_within_800m: "Jobs located within 800 m (workplace)", workers_within_1600m: "Jobs located within 1.6 km (workplace)",
+  aadt_nearest_road: "Average daily traffic, nearest state road (vehicles/day)",
+  acs_population_tract: "Residents of the venue's census tract", acs_median_hh_income_tract: "Median household income (tract residents)",
+  acs_median_age_tract: "Median age (tract residents)", acs_avg_household_size_tract: "Average household size (tract)",
+  acs_commute_drove_alone_share_tract: "Resident workers who drive alone to work", acs_commute_transit_share_tract: "Resident workers who take transit",
+  acs_commute_walk_share_tract: "Resident workers who walk to work", acs_households_no_vehicle_share_tract: "Households with no vehicle",
+};
+
+/** Formats an observation by unit: shares as %, USD with $, plus the Census MOE when present. */
+export function ObsValue({ value, unit, moe }: { value: string | number | null; unit: string; moe?: number | null }) {
+  if (value == null) return <Status s="unavailable" />;
+  const v = Number(value);
+  const text = unit === "share" ? `${(v * 100).toFixed(1)}%` : unit === "USD" ? `$${fmt(v)}` : unit === "years" || (unit === "people" && v < 20) ? fmt(v, 1) : fmt(v);
+  const m = moe == null ? null : unit === "share" ? `±${(moe * 100).toFixed(1)} pts` : unit === "USD" ? `±$${fmt(moe)}` : `±${fmt(moe, unit === "years" || (unit === "people" && v < 20) ? 1 : 0)}`;
+  return <>{text}{m && <span className="muted small"> {m}</span>}</>;
+}
+
 const LABEL: Record<string, string> = {
   observed: "observed", vendor_modeled: "vendor-modeled", internally_modeled: "internal model", assumed: "assumption", unavailable: "unavailable",
 };

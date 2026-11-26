@@ -20,7 +20,14 @@ see `docs/research/provider-research.md` for URLs and verification notes.
 | Census LEHD LODES8 (WAC + xwalk) | bulk csv.gz | none | 2020 blocks, **2024** | US Gov (public domain) | **tested, imported** (172 venues × 3 radii) | Daytime jobs near venues, island/county from blocks |
 | HDOT HPMS roads (AADT) via State GIS | ArcGIS REST `geodata.hawaii.gov/.../Transportation/MapServer/12` | none | road segment, **2024** | State open data | **tested, imported** (139 venues) | Nearest-road traffic context; static faces after survey |
 | DBEDT hotel performance | xlsx on files.hawaii.gov | none | island/region, monthly (**Oct 2026**) | State; STR-sourced → client use pending | **tested, imported** | Hotel occupancy → lobby visits |
-| Census ACS 5-year | api.census.gov | **free key required** | tract, 2020–2024 | US Gov | adapter built + mocked tests; **needs CENSUS_API_KEY** | Resident profile (not visitors) |
+| Census ACS 5-year | **bulk table-based Summary File** (www2.census.gov); API path optional | none (bulk) / free key (API) | tract, 2020–2024 | US Gov | **tested, imported** (172 venues × 8 measures, MOE) | Resident profile (not visitors) |
+| DBEDT monthly visitor statistics | xlsx (files.hawaii.gov) | none | island, monthly (**Sep 2026 P**) | State public statistics | **tested, imported** | Visitor arrivals, daily census, spending by island |
+| BLS QCEW | open-data CSV (data.bls.gov) | none | county × industry, quarterly (**2026 Q1**) | US Gov | **tested, imported** | Industry jobs, establishments, wages |
+| Census ZIP Business Patterns | bulk zip | none | ZIP × NAICS, **2023** | US Gov | **tested, imported** (560 rows) | Local businesses by category (prospecting) |
+| HDOT HPMS road segments | ArcGIS REST | none | 2,075 segments statewide, 2024 | State open data | **tested, imported** | Vehicle route exposure from GPS |
+| Honolulu open data portal | Socrata | none | Oahu | City terms | searched: **no traffic-count datasets** (only incidents, cameras, parking) | — |
+| Hawaii Tourism Authority | web reports | none | — | State | research page moved (404); official visitor statistics are DBEDT's (imported) | registry entry `hta_research` |
+| HLTA member reports | member portal / files | membership | hotels | HLTA/STR terms | **needs membership export + license review** | registry entry `hlta_member_reports` |
 | TIGERweb | ArcGIS REST | none | tract/block | US Gov | registered (crosswalk used instead) | Boundaries if needed |
 | OpenStreetMap Nominatim | REST, 1 req/s | none | address | ODbL | **tested** (73 venues geocoded) | Geocoding (flagged as geocoded) |
 | OpenStreetMap Overpass | REST | none | POI | ODbL | adapter built; **blocked** (connection reset from this environment) | Nearby businesses for prospecting |

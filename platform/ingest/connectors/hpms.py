@@ -89,3 +89,43 @@ def enrich_venues(conn: psycopg.Connection) -> dict:
                  Jsonb(inputs), ["internal", "client_report"], ["boundary_mismatch"] if len(segs) > 1 else []))
             run.bump("rows_inserted")
     return {"run_id": run.id, **run.counts}
+
+
+def load_segments(conn: psycopg.Connection, page: int = 1000) -> dict:
+    """Loads all HPMS road segments (geometry + AADT) for GPS route matching. Idempotent."""
+    with import_run(conn, SOURCE_ID, "connectors.hpms.load_segments", source_vintage="HPMS Roads 2024", params={"layer": LAYER}) as run, conn.cursor() as cur:
+        offset = 0
+        while True:
+            def call():
+                _limiter.wait()
+                r = requests.get(f"{LAYER}/query", params={"where": "1=1", "outFields": "route_id,route_name,bmp,emp,aadt,year_record,f_system_t,island",
+                                                           "returnGeometry": "true", "outSR": 4326, "resultOffset": offset, "resultRecordCount": page,
+                                                           "orderByFields": "objectid", "f": "json"}, timeout=120)
+                r.raise_for_status()
+                j = r.json()
+                if "error" in j:
+                    raise RuntimeError(j["error"])
+                return j.get("features", [])
+            feats = with_retries(call)
+            if not feats:
+                break
+            for f in feats:
+                a = f["attributes"]
+                paths = f.get("geometry", {}).get("paths") or []
+                if not paths:
+                    run.bump("rows_rejected"); continue
+                run.bump("rows_read")
+                wkt = "MULTILINESTRING(" + ",".join("(" + ",".join(f"{x} {y}" for x, y in p) + ")" for p in paths if len(p) >= 2) + ")"
+                key = f"{a['route_id']}:{a.get('bmp')}-{a.get('emp')}"
+                cur.execute("""INSERT INTO road_segment (source_id, segment_key, route_id, route_name, island, functional_class, aadt, aadt_year, geom, import_run_id)
+                               VALUES (%s,%s,%s,%s,%s,%s,%s,%s,ST_GeogFromText(%s),%s)
+                               ON CONFLICT (source_id, segment_key) DO UPDATE SET aadt=EXCLUDED.aadt, aadt_year=EXCLUDED.aadt_year, route_name=EXCLUDED.route_name, geom=EXCLUDED.geom
+                               WHERE road_segment.aadt IS DISTINCT FROM EXCLUDED.aadt OR NOT ST_Equals(road_segment.geom::geometry, EXCLUDED.geom::geometry)
+                               RETURNING (xmax=0)""",
+                            (SOURCE_ID, key, a.get("route_id"), a.get("route_name"), a.get("island"), a.get("f_system_t"),
+                             a.get("aadt") or None, a.get("year_record"), "SRID=4326;" + wkt, run.id))
+                row = cur.fetchone()
+                run.bump("rows_unchanged" if row is None else "rows_inserted" if row[0] else "rows_updated")
+            offset += len(feats)
+            conn.commit()
+    return {"run_id": run.id, **run.counts}

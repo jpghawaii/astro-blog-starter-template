@@ -47,9 +47,8 @@ NEW_USER_PASSWORD='...' npm run db:create-user -- you@jpghawaii.com admin "Your 
 # 5. Vertical slice: inventory -> geocode -> public data -> quality checks
 python -m ingest import-inventory data/private/master_inventory_geopath_2026-11.csv   # CSV export of the Master Inventory sheet
 python -m ingest geocode          # Nominatim, 1 req/s, only venues without coordinates
-python -m ingest enrich-lodes     # LODES8 jobs within 400/800/1600 m
-python -m ingest enrich-hpms      # HDOT HPMS nearest-road AADT
-python -c "from ingest.db import connect; from ingest.connectors.dbedt import import_hotel_occupancy; print(import_hotel_occupancy(connect()))"
+python -m ingest load-road-segments   # all HDOT HPMS segments (vehicle routes)
+python -m ingest refresh-public   # geography, LODES jobs, HPMS AADT, ACS residents, DBEDT visitors + hotels, BLS QCEW, Census ZBP
 python -m ingest quality
 python -m ingest connection-status
 
@@ -71,13 +70,15 @@ ALLOW_DEMO_DATA=1 DATABASE_URL=postgres://.../jpg_analytics_demo npm start
 ## Tests
 ```bash
 npm test                          # 42 TS tests: measurement models, occupancy, licensing, outcomes, reconciliation, targeting
-python -m pytest ingest/tests -q  # 14 Python tests against TEST_DATABASE_URL: geo joins, idempotency, validation, PII rejection, ACS, demo guard
+python -m pytest ingest/tests -q  # 18 Python tests against TEST_DATABASE_URL: geo joins, idempotency, validation, PII rejection,
+                                  #   ACS MOE, DBEDT parsing, QCEW suppression, GPS route exposure, demo guard
 npm run typecheck
 ```
 
 ## Data import
 CSV templates (header + one example row) are in `templates/`:
-`venues, assets, capacity, campaigns, bookings, proof_of_play, conversions, venue_counts, invoice_lines, traffic_counts`.
+`venues, assets, capacity, campaigns, bookings, proof_of_play, conversions, venue_counts, invoice_lines, traffic_counts`,
+plus `vehicle_gps.csv` (`python -m ingest import-gps <file>` then `route-exposure <asset_id> <from> <to>`).
 ```bash
 python -m ingest import-template bookings path/to/bookings.csv
 python -m ingest import-provider placer path/to/placer_export.csv    # map vendor export to the standard provider layout first

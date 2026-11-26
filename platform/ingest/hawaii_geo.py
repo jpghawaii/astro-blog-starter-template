@@ -120,3 +120,21 @@ def island_for(county: str | None, lat: float | None = None, lon: float | None =
                 return "Lanai"
         return "Maui"
     return COUNTY_ISLANDS.get(county)
+
+
+def assign_venue_geography(conn) -> dict:
+    """Stores county, tract, ZCTA and block of each located venue (nearest 2020 block internal point).
+    A venue's own ZIP from its address wins over the ZCTA when present (ZCTAs approximate ZIPs)."""
+    n = 0
+    with conn.cursor() as cur:
+        cur.execute("SELECT id, ST_Y(location::geometry), ST_X(location::geometry) FROM venue WHERE location IS NOT NULL")
+        for vid, lat, lon in cur.fetchall():
+            b = nearest_block(lat, lon)
+            if not b:
+                continue
+            cur.execute("""UPDATE venue SET county_fips=%s, tract_geoid=%s, zcta=%s, block_geoid=%s
+                           WHERE id=%s AND (county_fips, tract_geoid, zcta, block_geoid) IS DISTINCT FROM (%s,%s,%s,%s)""",
+                        (b.county, b.tract, b.zcta, b.geoid, vid, b.county, b.tract, b.zcta, b.geoid))
+            n += cur.rowcount
+    conn.commit()
+    return {"venues_updated": n}

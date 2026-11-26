@@ -4,7 +4,9 @@ import { revalidatePath } from "next/cache";
 import { audit, CAN, requireUser } from "@/lib/auth";
 import { q } from "@/lib/db";
 import { AssetEstimate, venueProfile } from "@/lib/audience";
-import { Demo, EstimateView, Flags, fmt, Status } from "@/components/ui";
+import { Demo, EstimateView, Flags, fmt, ObsValue, OBS_LABEL, Status } from "@/components/ui";
+import { marketContext } from "@/lib/market";
+import { MarketContextView } from "@/components/MarketContextView";
 
 /** Collapses assets whose estimate is identical (e.g. 8 pump tops at one station) into one card. */
 function groupEstimates(list: AssetEstimate[]) {
@@ -53,6 +55,7 @@ export default async function VenuePage({ params }: { params: Promise<{ id: stri
   const asOf = new Date().toISOString().slice(0, 10);
   const p = await venueProfile(id, asOf);
   if (!p) notFound();
+  const market = await marketContext(p.venue);
   const { venue } = p;
   const ctx = (code: string) => p.context.find((c) => c.metric_code === code);
   const jobs = [400, 800, 1600].map((r) => ({ r, o: ctx(`workers_within_${r}m`) }));
@@ -87,7 +90,8 @@ export default async function VenuePage({ params }: { params: Promise<{ id: stri
               <tr><td>AADT, nearest state-inventoried road (vehicles/day, two-way)</td><td className="n">{fmt(aadt?.value)}</td><td><Status s={aadt ? aadt.value_status : "unavailable"} /><Flags flags={aadt?.quality_flags} /></td>
                 <td className="small">{aadt?.geo_scope ?? "no HPMS segment within 60 m"}</td><td className="small mono">{aadt ? `${aadt.source_id} · ${aadt.period_start?.slice(0, 4)}` : "—"}</td></tr>
               {p.context.filter((c) => c.metric_code.startsWith("acs_")).map((c) => (
-                <tr key={c.id}><td>{c.metric_code.replace("acs_", "Residents: ").replace(/_/g, " ")}</td><td className="n">{fmt(c.value)}</td><td><Status s={c.value_status} /></td><td className="small">{c.geo_scope}</td><td className="small mono">{c.source_id}</td></tr>
+                <tr key={c.id}><td>{OBS_LABEL[c.metric_code] ?? c.metric_code}</td><td className="n"><ObsValue value={c.value} unit={c.unit} moe={c.uncertainty?.moe_90} /></td>
+                  <td><Status s={c.value_status} /><Flags flags={c.quality_flags} /></td><td className="small">{c.geo_scope}</td><td className="small mono">{c.source_id} · {c.period_start?.slice(0, 4)}–{c.period_end?.slice(0, 4)}</td></tr>
               ))}
             </tbody>
           </table></div>
@@ -105,6 +109,10 @@ export default async function VenuePage({ params }: { params: Promise<{ id: stri
               <p className="muted small">Use a road's AADT for a face only after a site survey confirms the face is visible from that road.</p>
             </details>
           )}
+          <p className="small muted">Resident figures describe people who live in the tract (ACS 5-year, ± 90% margin of error), not the venue’s visitors. “small sample” = coefficient of variation above 30%.</p>
+
+          <h2>Market context</h2>
+          <MarketContextView m={market} />
 
           <h2>Exposure estimates per asset <span className="muted small">({p.period.days}-day period ending {p.period.end})</span></h2>
           {groupEstimates(p.estimates).map(({ e, count }) => (

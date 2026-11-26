@@ -19,7 +19,7 @@ from ingest.matching import haversine_m, match, name_similarity, normalize_name
 load_env()
 TEST_URL = os.environ.get("TEST_DATABASE_URL")
 pytestmark = pytest.mark.skipif(not TEST_URL, reason="TEST_DATABASE_URL not set")
-TABLES = "import_run, venue, asset, capacity_period, match_exception, metric_observation, campaign, advertiser, booking, invoice_line, proof_of_play, conversion_event, traffic_count, creative, poi"
+TABLES = "import_run, venue, asset, capacity_period, match_exception, metric_observation, campaign, advertiser, booking, invoice_line, proof_of_play, conversion_event, traffic_count, creative, poi, road_segment, vehicle_gps_point"
 
 
 @pytest.fixture()

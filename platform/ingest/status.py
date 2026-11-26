@@ -35,7 +35,18 @@ def check_all(conn: psycopg.Connection) -> dict:
         ok, note = _probe("https://api.census.gov/data/2024/acs/acs5", params={"get": "NAME", "for": "state:15", "key": os.environ["CENSUS_API_KEY"]})
         results["census_acs5"] = ("tested_working" if ok else "blocked", note)
     else:
-        results["census_acs5"] = ("needs_credentials", "CENSUS_API_KEY not set (keyless requests are rejected)")
+        ok, note = _probe("https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01003.dat", stream=True)
+        results["census_acs5"] = ("tested_working" if ok else "blocked", f"bulk Summary File {note}; API path would need CENSUS_API_KEY")
+    for sid, url in (("bls_qcew", "https://data.bls.gov/cew/data/api/2026/1/area/15003.csv"),
+                     ("census_zbp", "https://www2.census.gov/programs-surveys/cbp/datasets/2023/zbp23detail.zip")):
+        ok, note = _probe(url, stream=True)
+        results[sid] = ("tested_working" if ok else "blocked", note)
+    try:
+        from .connectors.market import DBEDT_URL
+        ok, note = _probe(DBEDT_URL.format(mon="Sep", y=2026), stream=True)
+        results["dbedt_visitor_research"] = ("tested_working" if ok else "blocked", f"monthly highlights workbook {note}")
+    except Exception as e:  # noqa: BLE001
+        results["dbedt_visitor_research"] = ("blocked", str(e)[:200])
     try:
         r = requests.post("https://overpass-api.de/api/interpreter", data={"data": "[out:json];node(1);out;"}, timeout=30)
         results["osm"] = ("tested_working" if r.ok else "blocked", f"Overpass HTTP {r.status_code}")

@@ -8,7 +8,16 @@ Commands
   geocode                          Geocode venues lacking coordinates (Nominatim, 1 req/s)
   enrich-lodes [year]              LODES8 jobs within 400/800/1600 m of each venue
   enrich-hpms                      HDOT HPMS nearest-road AADT for each venue
-  enrich-acs                       ACS 5-year tract profile for each venue (needs CENSUS_API_KEY)
+  enrich-acs                       ACS 5-year resident tract profile per venue (bulk Summary File, no key needed)
+  assign-geography                 County / tract / ZCTA / block for each located venue
+  import-visitors                  DBEDT monthly visitor statistics by island (arrivals, daily census, spending)
+  import-hotel-occupancy           DBEDT monthly hotel occupancy by region (STR-sourced, internal use)
+  import-qcew                      BLS QCEW jobs / wages by county x industry (latest quarter)
+  import-zbp [year]                Census ZIP Business Patterns establishments by ZIP x NAICS
+  load-road-segments               All HDOT HPMS road segments with AADT (for vehicle routes)
+  import-gps <csv>                 Vehicle GPS pings (templates/vehicle_gps.csv)
+  route-exposure <asset_id> <from> <to>   Seconds per road segment for a vehicle and period
+  refresh-public                   Run every public-data refresh above (schedule monthly)
   enrich-osm                       OpenStreetMap POIs near venues (Overpass)
   sync-monday                      Read monday.com sales board (needs MONDAY_API_TOKEN)
   quality                          Run data-quality checks
@@ -50,6 +59,37 @@ def main(argv: list[str]) -> int:
     elif cmd == "enrich-acs":
         from .connectors.acs import enrich_venues
         out = enrich_venues(conn)
+    elif cmd == "assign-geography":
+        from .hawaii_geo import assign_venue_geography
+        out = assign_venue_geography(conn)
+    elif cmd == "import-visitors":
+        from .connectors.market import import_visitor_stats
+        out = import_visitor_stats(conn)
+    elif cmd == "import-hotel-occupancy":
+        from .connectors.dbedt import import_hotel_occupancy
+        out = import_hotel_occupancy(conn)
+    elif cmd == "import-qcew":
+        from .connectors.market import import_qcew
+        out = import_qcew(conn)
+    elif cmd == "import-zbp":
+        from .connectors.market import import_zbp
+        out = import_zbp(conn, int(args[0]) if args else 2023)
+    elif cmd == "load-road-segments":
+        from .connectors.hpms import load_segments
+        out = load_segments(conn)
+    elif cmd == "import-gps":
+        from .adapters.gps import import_gps
+        out = import_gps(conn, args[0])
+    elif cmd == "route-exposure":
+        from .adapters.gps import compute_route_exposure
+        out = compute_route_exposure(conn, int(args[0]), args[1], args[2])
+    elif cmd == "refresh-public":
+        from .connectors import acs, hpms, lodes, market
+        from .connectors.dbedt import import_hotel_occupancy
+        from .hawaii_geo import assign_venue_geography
+        out = {"geography": assign_venue_geography(conn), "lodes": lodes.enrich_venues(conn), "hpms": hpms.enrich_venues(conn),
+               "acs": acs.enrich_venues(conn), "visitors": market.import_visitor_stats(conn), "hotels": import_hotel_occupancy(conn),
+               "qcew": market.import_qcew(conn), "zbp": market.import_zbp(conn)}
     elif cmd == "enrich-osm":
         from .connectors.osm import enrich_venues
         out = enrich_venues(conn)

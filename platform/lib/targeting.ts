@@ -53,7 +53,15 @@ export interface AdvertiserSignals {
   lastInvoiceDate: string | null;
   hasAuthorizedContact: boolean;
   sources: string[];
+  /** Census ZBP establishments of the advertiser's industry in ZIPs where JPG has venues (null = unknown). */
+  localEstablishments?: { count: number; zips: number; zipsWithVenues: number; naics: string; year: string } | null;
 }
+
+/** Industry -> ZIP Business Patterns NAICS codes (as imported by ingest/connectors/market.py). */
+export const INDUSTRY_NAICS: Partial<Record<Industry, string[]>> = {
+  "Food & Drink": ["722///", "445///"], Retail: ["44----", "45----"], Medical: ["621///"], Financial: ["522///"],
+  "Real Estate": ["531///"], Auto: ["441///", "457///"], Tourism: ["721///", "713///"],
+};
 
 export interface FormatSupply { format: string; formatName: string; units: number; venuesWithContext: number; medianJobs800: number | null; typical4wkPrice: number | null }
 
@@ -109,6 +117,13 @@ export function recommend(a: AdvertiserSignals, supply: FormatSupply[], today = 
     name: "Budget fit", weight: 0.15,
     score: bud != null && price != null ? Math.min(1, bud / (price * 3)) : null,
     reason: bud != null && price != null ? `CRM estimate $${bud.toLocaleString()} vs ~$${price.toLocaleString()} per unit per 4 weeks` : "deal value or price unavailable",
+  });
+  // 4b. Local category presence (Census ZBP): how many businesses of this kind operate where JPG has venues.
+  const le = a.localEstablishments;
+  components.push({
+    name: "Local category presence", weight: 0.1,
+    score: le ? Math.min(1, le.count / 300) : null,
+    reason: le ? `${le.count.toLocaleString()} ${le.naics} establishments in ${le.zips} of the ${le.zipsWithVenues} ZIPs with JPG venues (Census ZBP ${le.year}) — competitors/peers active near inventory` : "industry not mapped to NAICS or ZBP not imported",
   });
   // 5. Relationship signals
   const months = a.lastInvoiceDate ? (today.getTime() - Date.parse(a.lastInvoiceDate)) / (30.4 * 86_400_000) : null;

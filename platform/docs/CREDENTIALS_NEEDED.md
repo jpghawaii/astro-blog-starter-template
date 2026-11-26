@@ -6,7 +6,7 @@ each item unlocks a specific capability.
 ## Free / quick
 | # | Item | Where to get it | Env var | Unlocks |
 |---|---|---|---|---|
-| 1 | Census API key (free) | https://api.census.gov/data/key_signup.html | `CENSUS_API_KEY` | `python -m ingest enrich-acs` — resident tract profiles with margins of error |
+| 1 | Census API key (free, **optional**) | https://api.census.gov/data/key_signup.html | `CENSUS_API_KEY` + `ACS_MODE=api` | only needed for ACS variables beyond the bulk tables already imported (bulk path needs no key) |
 | 2 | monday.com personal API token (read) | monday → avatar → Developers → My access tokens | `MONDAY_API_TOKEN` | live `sync-monday` (snapshot already imported) |
 | 3 | Google service account with *Viewer* on the Master Inventory sheet | Google Cloud console → service account JSON; share the sheet with its email | `GOOGLE_APPLICATION_CREDENTIALS`, `MASTER_INVENTORY_SHEET_ID` | scheduled inventory refresh (today: CSV export) |
 | 4 | Intuit developer app (QuickBooks Online, Accounting scope, read use only) | developer.intuit.com → create app → OAuth playground for refresh token | `QBO_CLIENT_ID`, `QBO_CLIENT_SECRET`, `QBO_REFRESH_TOKEN`, `QBO_REALM_ID` | live invoice sync (snapshot already imported) |
@@ -19,7 +19,8 @@ each item unlocks a specific capability.
 4. **Venue counts** per venue and period: register/fueling transactions, door counts, operating hours, fueling positions, lane share — with a written OK to use them in advertiser reports.
 5. **Site surveys** for walls/pillars: which road each face is visible from (`faces_road`), pedestrian counts.
 6. **Addresses/coordinates** for 65 venues still without a location (hotels, Kailua Town, Windward Mall, fleet).
-7. GPS route logs for vans/trucks if vehicle exposure is to be estimated.
+7. GPS route logs for vans/trucks (telematics or phone-app export: vehicle, timestamp with offset, lat, lon; templates/vehicle_gps.csv) → route exposure against HDOT road segments.
+8. HLTA / HTA member or partner reports you are entitled to (export files), plus their terms of use → hotel and tourism market detail beyond DBEDT's public statistics.
 
 ## Paid / contract (decision required)
 | Provider | Why | What to ask for in the contract | Env var |

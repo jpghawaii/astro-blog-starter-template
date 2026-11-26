@@ -49,6 +49,7 @@ def build_files(seed: int = 7) -> dict[str, Path]:
         ["demo-cstore-kalihi", "DEMO C-Store Kalihi", "gas_station", "DEMO Operator", "DEMO 1200 N School St", "Honolulu", "96817", "Oahu", 21.3297, -157.8659, "24 hours"],
         ["demo-hotel-waikiki", "DEMO Hotel Waikiki", "hotel", "DEMO Hotels", "DEMO 2300 Kalakaua Ave", "Honolulu", "96815", "Oahu", 21.2790, -157.8290, "24 hours"],
         ["demo-grocery-hilo", "DEMO Grocery Hilo", "grocery", "DEMO Markets", "DEMO 100 Kanoelehua Ave", "Hilo", "96720", "Hawaii Island", 19.7060, -155.0640, "6am-10pm"],
+        ["demo-fleet-oahu", "DEMO Van Fleet Oahu", "transit_fleet", "DEMO Fleet", "", "Honolulu", "", "Oahu", "", "", ""],
     ])
     files["assets"] = _write("assets", tpl("assets"), [
         ["demo-kaimuki-cooler", "demo-cstore-kaimuki", "cstore_screen", "DEMO1", "DEMO Kaimuki Cooler Screen", "In-Store Cooler", "", "", 1920, 1080, "landscape", 15, 120, 8, 1, "operating", 500, "false"],
@@ -56,6 +57,7 @@ def build_files(seed: int = 7) -> dict[str, Path]:
         ["demo-kalihi-register", "demo-cstore-kalihi", "cstore_screen", "DEMO2", "DEMO Kalihi Register Screen", "In-Store Register", "", "", 1080, 1920, "portrait", 15, 90, 6, 1, "operating", 500, "false"],
         ["demo-hotel-lobby-1", "demo-hotel-waikiki", "hotel_screen", "DEMO3", "DEMO Hotel Lobby Screen", "Hotel Interior", "", "", 1920, 1080, "landscape", 15, 180, 12, 1, "operating", 500, "false"],
         ["demo-hilo-checkout", "demo-grocery-hilo", "checkout", "", "DEMO Hilo Checkout Dividers", "Checkout Area", "", "", "", "", "", "", "", "", 1, "operating", 650, "false"],
+        ["demo-van-1", "demo-fleet-oahu", "vehicle", "DEMO-VAN-1", "DEMO Wrapped Van 1", "Mobile", 144, 60, "", "", "", "", "", "", 2, "operating", 1500, "false"],
     ])
     files["capacity"] = _write("capacity", tpl("capacity"), [
         ["demo-kaimuki-cooler", "2026-01-01", "2026-12-31", "spot_slot", 8, "DEMO: 120s loop / 15s = 8 slots"],
@@ -154,4 +156,32 @@ def load_demo(conn: psycopg.Connection) -> dict:
                         (str(cid), code, value, "2026-09-07" if code.endswith("pre") else "2026-10-05", "2026-10-04" if code.endswith("pre") else "2026-11-01",
                          Jsonb({"units": 6, "days": 28}), ["internal"]))
     conn.commit()
+    out["gps"] = _demo_gps(conn)
     return out
+
+
+def _demo_gps(conn: psycopg.Connection) -> dict:
+    """Synthetic van drive along real HPMS Oahu segments (requires `hpms.load_segments` in this DB)."""
+    from .adapters.gps import compute_route_exposure, import_gps
+    with conn.cursor() as cur:
+        cur.execute("SELECT count(*) FROM road_segment")
+        if cur.fetchone()[0] == 0:
+            return {"skipped": "no road_segment rows; run connectors.hpms.load_segments first"}
+        # 3 deterministic Oahu urban arterials with AADT; sample a point every 30 s at ~9 m/s along each.
+        cur.execute("""WITH segs AS (SELECT segment_key, ST_GeometryN(geom::geometry,1) g FROM road_segment
+                         WHERE island='Oahu' AND aadt BETWEEN 15000 AND 40000 AND ST_Length(geom) BETWEEN 2500 AND 4000 ORDER BY segment_key LIMIT 3)
+                       SELECT segment_key, ST_Y(ST_LineInterpolatePoint(g, f::float8)), ST_X(ST_LineInterpolatePoint(g, f::float8))
+                       FROM segs, generate_series(0::numeric, 1::numeric, (270.0 / GREATEST(ST_Length(g::geography), 300))::numeric) f ORDER BY segment_key, f""")
+        pts = cur.fetchall()
+    rows, t = [], datetime(2026, 10, 6, 8, 0, tzinfo=HST)
+    for day in range(5):  # five weekday shifts
+        t = datetime(2026, 10, 6 + day, 8, 0, tzinfo=HST)
+        for _seg, lat, lon in pts:
+            rows.append(["demo-van-1", "DEMO-VAN-1", t.isoformat(), round(lat, 6), round(lon, 6)])
+            t += timedelta(seconds=30)
+    p = _write("vehicle_gps", ["asset_key", "vehicle_id", "recorded_at", "lat", "lon"], rows)
+    imp = import_gps(conn, p, is_demo=True)
+    with conn.cursor() as cur:
+        cur.execute("SELECT id FROM asset WHERE asset_key='demo-van-1' AND is_demo")
+        aid = cur.fetchone()[0]
+    return {"import": imp, "exposure": compute_route_exposure(conn, aid, "2026-10-06", "2026-10-10")}

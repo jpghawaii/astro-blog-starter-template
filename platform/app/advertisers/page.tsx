@@ -1,6 +1,6 @@
 import { CAN, requireUser } from "@/lib/auth";
 import { demoFilter, q } from "@/lib/db";
-import { AdvertiserSignals, FormatSupply, recommend } from "@/lib/targeting";
+import { AdvertiserSignals, FormatSupply, Industry, INDUSTRY_NAICS, recommend } from "@/lib/targeting";
 import { Demo, fmt } from "@/components/ui";
 
 export default async function Advertisers({ searchParams }: { searchParams: Promise<{ industry?: string }> }) {
@@ -26,11 +26,23 @@ export default async function Advertisers({ searchParams }: { searchParams: Prom
             (SELECT count(*) FROM advertiser_contact c WHERE c.advertiser_id=a.id)::int contacts
      FROM advertiser a LEFT JOIN metric_observation p ON p.subject_type='network' AND p.subject_id='advertiser:'||a.id AND p.metric_code='crm_pipeline'
      WHERE ${demoFilter("a")} AND ($1::text IS NULL OR a.industry=$1)`, [industry || null]);
+  // Census ZBP establishments by NAICS group across the ZIPs where JPG has located venues.
+  const zbp = await q<{ naics: string; est: number; zips: number; total_zips: number; year: string }>(
+    `WITH vz AS (SELECT DISTINCT COALESCE(CASE WHEN zip ~ '^96[78][0-9]{2}$' THEN zip END, zcta) z FROM venue v WHERE ${demoFilter("v")} AND (zip IS NOT NULL OR zcta IS NOT NULL))
+     SELECT split_part(m.subject_id, ':', 4) naics, sum(m.value)::int est, count(*)::int zips, (SELECT count(*) FROM vz)::int total_zips, max(extract(year from m.period_start))::text AS "year"
+     FROM metric_observation m JOIN vz ON m.subject_id LIKE 'zip:' || vz.z || ':naics:%'
+     WHERE m.subject_type='geo_area' AND m.metric_code='establishments' GROUP BY 1`);
+  const local = (ind: string | null): AdvertiserSignals["localEstablishments"] => {
+    const codes = ind ? INDUSTRY_NAICS[ind as Industry] : undefined;
+    const hits = codes ? zbp.filter((z) => codes.includes(z.naics)) : [];
+    if (!hits.length) return null;
+    return { count: hits.reduce((s, h) => s + h.est, 0), zips: Math.max(...hits.map((h) => h.zips)), zipsWithVenues: hits[0].total_zips, naics: `NAICS ${codes!.map((c) => c.replace(/[-/]/g, "")).join("+")}`, year: hits[0].year };
+  };
   const recs = rows.map((r) => recommend({
     id: r.id, name: r.name, industry: r.industry, inventoryInterest: r.interest ? r.interest.split(",").map((s) => s.trim()) : [],
     crmStage: r.stage, crmPriority: r.priority, estDealValue: r.deal ? Number(r.deal) : null,
     mediaRevenue12m: showRevenue && r.rev12 ? Number(r.rev12) : null, lastInvoiceDate: showRevenue ? r.last_inv : null,
-    hasAuthorizedContact: r.contacts > 0, sources: r.sources,
+    hasAuthorizedContact: r.contacts > 0, sources: r.sources, localEstablishments: local(r.industry),
   } as AdvertiserSignals, supply)).sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
   const contacts = showContacts ? await q<{ advertiser_id: string; full_name: string | null; role: string | null; email: string | null; phone: string | null; linkedin_url: string | null; source_id: string }>(
     "SELECT advertiser_id::text, full_name, role, email, phone, linkedin_url, source_id FROM advertiser_contact") : [];

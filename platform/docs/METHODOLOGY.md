@@ -88,6 +88,14 @@ distance; all segments within 60 m are kept for the analyst.
 `contacts = Σ_segments (seconds_on_segment / 3600) × (vehicles_per_hour × occupancy + pedestrians_per_hour) × p_visible [× p_notice]`
 Requires timestamped GPS routes. Without them the estimate is **unavailable**.
 
+Route exposure (`ingest/adapters/gps.py`): consecutive GPS pings form intervals; intervals > 120 s are
+dropped (vehicle off / no coverage); intervals with < 15 m movement are parked time; each moving interval
+is credited to the nearest HDOT HPMS road segment within 40 m, otherwise counted as *unmatched* time with
+no exposure (unavailable, not zero traffic). `vehicles_per_hour = AADT / 24` on each segment (flat daily
+profile, flagged). This is a **stationary-observer approximation**: a moving van meets more opposing
+traffic than a fixed point sees, so it is conservative for moving time and generous for slow congested
+time. Hourly counts, where supplied, should replace the flat profile.
+
 ### 3.6 Double counting guard
 Inputs declare what they already include (`alreadyAdjustedFor`). Applying a factor already included
 (e.g. a view-zone share on a vendor "exposed audience") makes the estimate unavailable with an explanation.
@@ -125,6 +133,24 @@ See the Methodology page or `model_assumption`. All current assumptions are JPG 
 **not measured** — and are marked “not yet reviewed”. Replace them with observations as they become
 available (camera counts, CMS logs, venue POS data, site surveys).
 
-## 9. Revenue reconciliation
+## 9. Area and market context (never venue traffic)
+
+| Context | Source | Geography | Notes |
+|---|---|---|---|
+| Jobs near venue (daytime workers) | LEHD LODES8 WAC 2024 | 400 / 800 / 1,600 m around venue (2020 block points) | noise-infused at block level; radius totals only |
+| Nearest-road traffic | HDOT HPMS 2024 AADT | nearest segment ≤ 60 m | vehicles, two-way |
+| Residents | ACS 5-year 2020–2024 (bulk Summary File) | census tract containing the venue | estimates with 90% MOE; shares use the Census proportion-MOE formula; CV > 30% flagged *small sample* |
+| Visitor market | DBEDT monthly visitor statistics | island, month (preliminary) | arrivals, visitor days, average daily census, length of stay, spending |
+| Hotel occupancy | DBEDT hotel performance (STR-sourced) | island / region, month | internal use only until terms confirmed |
+| Local businesses | Census ZIP Business Patterns 2023 | venue ZIP (address ZIP, else ZCTA) | establishment counts only |
+| Industry size & wages | BLS QCEW (latest quarter) | county × private supersector | suppressed cells → unavailable |
+
+These describe places, residents, workers, visitors and industries in aggregate. They are used for
+context and contextual advertiser fit, never as venue visits or impressions, and never for
+individual-level targeting. Sensitive characteristics (race, ethnicity, religion, health) are not imported.
+Card-spend data at venue/trade-area level is **not** available from public sources; it requires a licensed
+provider (e.g. Mastercard).
+
+## 10. Revenue reconciliation
 Invoice lines are classified (`media`, `production`, `tax`, `discount`, `fee`) from the QuickBooks account
 and item; only `media` is compared with booked value. Revenue is an accounting fact, not delivery evidence.

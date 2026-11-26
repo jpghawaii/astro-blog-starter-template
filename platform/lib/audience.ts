@@ -4,7 +4,7 @@
  */
 import { demoFilter, q } from "./db";
 import { allowedUses, attributions, SourceLicense, Use } from "./licensing";
-import { checkoutContacts, hotelLobbyVisits, opportunityToSee, pumpTopContacts, screenAdContacts, staticFaceContacts } from "./measurement/models";
+import { checkoutContacts, hotelLobbyVisits, opportunityToSee, pumpTopContacts, screenAdContacts, staticFaceContacts, vehicleContacts } from "./measurement/models";
 import { Estimate, ModelInput, unavailable } from "./measurement/types";
 
 export const PERIOD_DAYS = 28; // JPG standard 4-week cycle
@@ -13,6 +13,7 @@ export interface Observation {
   id: string; subject_id: string; metric_code: string; value: string | null; unit: string; period_start: string | null; period_end: string | null;
   geo_scope: string | null; value_status: string; source_id: string; source_record_ref: string | null; formula: string | null;
   inputs: Record<string, unknown>; sample_size: string | null; quality_flags: string[]; imported_at: string; is_demo: boolean;
+  uncertainty?: { moe_90?: number | null } | null;
 }
 export interface AssetRow {
   id: string; asset_key: string; name: string; format_code: string; format_name: string; placement: string | null; is_digital: boolean;
@@ -23,6 +24,7 @@ export interface AssetRow {
 export interface VenueRow {
   id: string; name: string; venue_type: string; operator_name: string | null; address: string | null; city: string | null; zip: string | null;
   island: string | null; lat: number | null; lon: number | null; location_quality: string; status: string; source_id: string; is_demo: boolean; updated_at: string;
+  zcta: string | null; county_fips: string | null; tract_geoid: string | null;
 }
 export interface Assumption { code: string; applies_to: string; description: string; unit: string; low_value: string; base_value: string; high_value: string; rationale: string; source_id: string; status: string }
 
@@ -85,7 +87,7 @@ function perPeriod(o: Observation | undefined, code: string, label: string): Mod
 export async function venueProfile(venueId: string, asOfDate: string): Promise<VenueProfile | null> {
   const [venue] = await q<VenueRow>(
     `SELECT id::text, name, venue_type, operator_name, address, city, zip, island, ST_Y(location::geometry) lat, ST_X(location::geometry) lon,
-            location_quality, status, source_id, is_demo, updated_at FROM venue v WHERE id = $1 AND ${demoFilter("v")}`, [venueId]);
+            location_quality, status, source_id, is_demo, updated_at, zcta, county_fips, tract_geoid FROM venue v WHERE id = $1 AND ${demoFilter("v")}`, [venueId]);
   if (!venue) return null;
   const assets = await q<AssetRow>(
     `SELECT a.id::text, asset_key, a.name, format_code, f.name format_name, placement, a.is_digital, spot_length_s, loop_length_s, slots_per_loop, faces,
@@ -93,7 +95,7 @@ export async function venueProfile(venueId: string, asOfDate: string): Promise<V
      FROM asset a JOIN media_format f ON f.code = a.format_code WHERE venue_id = $1 AND ${demoFilter("a")} ORDER BY format_code, a.name`, [venueId]);
   const obs = await q<Observation>(
     `SELECT id::text, subject_id, metric_code, value, unit, period_start::text, period_end::text, geo_scope, value_status, source_id, source_record_ref,
-            formula, inputs, sample_size, quality_flags, imported_at, is_demo
+            formula, inputs, sample_size, quality_flags, imported_at, is_demo, uncertainty
      FROM metric_observation m WHERE ((subject_type='venue' AND subject_id=$1) OR (subject_type='asset' AND subject_id = ANY($2)))
        AND ${demoFilter("m")} ORDER BY metric_code, period_end DESC NULLS LAST`, [venueId, assets.map((a) => a.id)]);
   const registry = await loadRegistry();
@@ -199,8 +201,28 @@ export async function venueProfile(venueId: string, asOfDate: string): Promise<V
         vehicles_passing: veh, vehicle_occupancy: A("vehicle_occupancy"), p_visible_vehicle: A("p_visible_vehicle"),
       }, ctx);
     } else {
-      needed.push("GPS route log with timestamps for the vehicle, plus traffic volumes for driven segments");
-      est = unavailable("ad_contacts_ots", 1, "contacts", "see vehicleContacts()", "No GPS route data imported for this vehicle.");
+      // Vehicles: GPS route exposure (seconds per HPMS segment) x segment AADT/24 (flat hourly profile).
+      const route = latest("route_exposure", a.id);
+      type Seg = { segment_key: string; seconds: number; aadt: number | null; route_name: string | null };
+      const inp = route?.inputs as { segments?: Seg[]; unmatched_seconds?: number; parked_seconds?: number; gps_source?: string } | undefined;
+      const segs = (inp?.segments ?? []).filter((s) => s.aadt != null && s.seconds > 0);
+      if (!route) needed.push("GPS route log with timestamps for the vehicle (templates/vehicle_gps.csv)");
+      est = vehicleContacts({
+        segments: segs.map((s) => ({
+          segmentId: s.segment_key, seconds_on_segment: s.seconds, gps_source: inp?.gps_source ?? route!.source_id,
+          vehicles_per_hour: { code: "vehicles_per_hour", label: `AADT/24 on ${s.route_name ?? s.segment_key}`, unit: "vehicles/hour", status: "observed",
+            value: (s.aadt as number) / 24, sourceId: "hdot_hpms_2024", sourceRef: `road_segment:${s.segment_key}` },
+        })),
+        vehicle_occupancy: A("vehicle_occupancy")!, p_visible: A("p_visible_vehicle")!,
+      }, ctx);
+      if (route && est.values) {
+        const offNet = (inp?.unmatched_seconds ?? 0) + (inp?.segments ?? []).filter((s) => s.aadt == null).reduce((t, s) => t + s.seconds, 0);
+        est.warnings.unshift(`Route period ${route.period_start} → ${route.period_end} (not scaled to ${PERIOD_DAYS} days).` +
+          (offNet ? ` ${Math.round(offNet / 60)} min driven on roads without AADT counted as no exposure (unavailable, not zero traffic).` : ""));
+        derivedFrom.push({ code: "route_exposure", label: "GPS route exposure (seconds on network)", unit: "seconds", status: "observed", sourceId: route.source_id,
+          sourceRef: `metric_observation:${route.id}`, values: { low: Number(route.value), base: Number(route.value), high: Number(route.value) },
+          periodStart: route.period_start ?? undefined, periodEnd: route.period_end ?? undefined, sampleSize: route.sample_size ? Number(route.sample_size) : undefined });
+      }
     }
     if (derivedFrom.length) est = { ...est, inputs: [...derivedFrom, ...est.inputs] };
     const sourceIds = [...new Set([a.source_id, ...est.inputs.map((i) => i.sourceId)])];
