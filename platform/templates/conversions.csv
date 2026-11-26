@@ -1,0 +1,2 @@
+event_id,source,campaign_key,creative_key,asset_key,event_type,occurred_at,value_usd,dedup_key,utm_source,utm_medium,utm_campaign
+qr-000001,qr_tracker,example-2026-12,holiday-15s,example-kapahulu-cooler,qr_scan,2026-12-02T12:31:00-10:00,,,,,

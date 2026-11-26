@@ -1,0 +1,2 @@
+station_id,road_name,lat,lon,count_type,count_year,value,direction,source_id
+ped-kapahulu-01,Kapahulu Ave sidewalk,21.2801,-157.8102,pedestrian,2026,1450,both,venue_provided

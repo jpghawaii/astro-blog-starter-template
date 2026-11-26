@@ -1,0 +1,51 @@
+# Project status — resume here
+
+_Last updated: 2026-11-26 (session 1)._
+
+## State
+* **Code**: `platform/` on branch `ccr-1744846a-4jolme`. Web app, schema (migrations 001–003), ingestion, tests, docs.
+* **Tests**: 42 TS (vitest) + 14 Python (pytest) passing. `npm run build` clean.
+* **Databases (local only, not in git)**: `jpg_analytics` (real data), `jpg_analytics_test` (tests truncate it), `jpg_analytics_demo` (synthetic).
+* **Private data (git-ignored, `platform/data/private/`)**:
+  `master_inventory_geopath_2026-11.csv` (Google Sheet export, 632 rows),
+  `monday_sales_snapshot_2026-11-26.json` (18 deals), `qbo_invoice_lines_2025-2026.csv` (920 lines),
+  `reports/*.pdf` (real-data report samples). Cloud containers are ephemeral: re-export if missing.
+
+## Real data loaded (jpg_analytics)
+| Item | Count |
+|---|---|
+| Venues / with location / geocoded | 237 / 172 / 73 |
+| Assets (faces/screens) | 632 (195 digital) |
+| LODES8 2024 jobs observations | 516 (172 venues × 3 radii) |
+| HPMS 2024 nearest-road AADT | 139 venues |
+| DBEDT hotel occupancy (Oct 2026) | 8 regions |
+| QuickBooks invoice lines (2025-01 → 2026-12) | 920 (387 linked to venues) |
+| Advertisers (CRM + QuickBooks) | 41 |
+| Open exceptions | 331 (195 missing loop spec, 65 no coordinates, 29 geocode failed, 25 ambiguous, 9 low-precision geocode, 6 unmatched, 2 conflicts) |
+
+Treat all venue/asset counts as **unverified** until reconciled with installed-player and venue-contract records.
+
+## Known findings to act on
+* Two venues named “Times Supermarket – Kahala”, one at 590 Kailua Road → likely mislabeled row in the source sheet (conflict exception).
+* 144 assets carry package rates only (e.g. “C-Store Domination Package, 84 venues $2,100/4 wks”); not divided per unit by design.
+* Digital screens lack loop length / slots per loop in every source → no occupancy, no scheduled plays.
+* Hotel kit lists rooms and island but no addresses → no area context for hotels; derived lobby visits work (internal only: DBEDT figures are STR-sourced).
+* Overpass API unreachable from this cloud environment (connection reset) → POI enrichment not run.
+
+## Next steps (priority)
+1. Supply loop schedules + proof-of-play exports for screens (templates/capacity.csv, proof_of_play.csv).
+2. Export bookings from monday.com / contracts into templates/bookings.csv; link invoices to campaigns (`campaign_key`).
+3. Resolve geocoding and hotel-address exceptions (Exceptions page).
+4. Add `CENSUS_API_KEY`, run `python -m ingest enrich-acs`.
+5. Decide on one visitation provider (Placer.ai or Azira); update license registry after contract review.
+6. Deploy: managed Postgres with PostGIS + Node host; schedule ingestion jobs (cron) — see README.
+7. Review assumptions register with sales/ops; replace with measurements where possible.
+
+## Commands cheat-sheet
+```bash
+cd platform
+npm run db:migrate                # apply new migrations
+python -m ingest --help           # all ingestion commands
+python -m ingest connection-status
+npm test && python -m pytest ingest/tests -q
+```

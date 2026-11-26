@@ -1,0 +1,2 @@
+campaign_key,advertiser_name,industry,campaign_name,flight_start,flight_end,budget_usd,status,attribution_window_days,matching_method,experiment_design
+example-2026-12,Example Advertiser LLC,Food & Drink,Holiday menu push,2026-12-01,2026-12-28,2100,planned,7,"QR scans tagged with campaign id; UTM utm_campaign=example-2026-12",none

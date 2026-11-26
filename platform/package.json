@@ -1,0 +1,37 @@
+{
+  "name": "jpg-media-analytics",
+  "version": "0.1.0",
+  "private": true,
+  "description": "JPG Media inventory, audience measurement and campaign outcomes platform (Hawaii OOH/DOOH)",
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "db:migrate": "tsx scripts/migrate.ts",
+    "db:seed-reference": "tsx scripts/seed-reference.ts",
+    "db:create-user": "tsx scripts/create-user.ts",
+    "compute:audience": "tsx scripts/compute-audience.ts"
+  },
+  "dependencies": {
+    "bcryptjs": "3.0.3",
+    "leaflet": "1.9.4",
+    "next": "16.4.6",
+    "pg": "8.23.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "react-leaflet": "5.0.0"
+  },
+  "devDependencies": {
+    "@types/leaflet": "1.9.23",
+    "@types/node": "22.19.1",
+    "@types/pg": "8.23.1",
+    "@types/react": "19.3.3",
+    "@types/react-dom": "19.2.3",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "vitest": "4.0.16"
+  },
+  "engines": { "node": ">=22" }
+}

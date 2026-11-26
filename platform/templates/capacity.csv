@@ -1,0 +1,2 @@
+asset_key,start_date,end_date,unit,capacity,basis
+example-kapahulu-cooler,2026-01-01,2026-12-31,spot_slot,8,"120s loop / 15s spots = 8 sellable slots (CMS schedule 2026-01)"

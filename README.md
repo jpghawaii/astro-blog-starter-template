@@ -62,3 +62,11 @@ Check out [our documentation](https://docs.astro.build) or jump into our [Discor
 ## Credit
 
 This theme is based off of the lovely [Bear Blog](https://github.com/HermanMartinus/bearblog/).
+
+---
+
+## JPG Media Analytics platform
+
+This repository also contains the JPG Media OOH/DOOH analytics platform in [`platform/`](platform/README.md)
+(Next.js + PostgreSQL/PostGIS + Python ingestion). It is independent of the Astro blog above.
+See [`platform/README.md`](platform/README.md) and [`platform/STATUS.md`](platform/STATUS.md).

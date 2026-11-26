@@ -1,0 +1,2 @@
+asset_key,venue_key,format_code,operator_frame_id,name,placement,width_in,height_in,pixel_width,pixel_height,orientation,spot_length_s,loop_length_s,slots_per_loop,faces,status,rate_4wk_usd,faces_road
+example-kapahulu-cooler,example-store-kapahulu,cstore_screen,JPG999,Example Kapahulu Cooler Screen,In-Store Cooler,,,1920,1080,landscape,15,120,8,1,operating,500,false

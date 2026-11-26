@@ -1,0 +1,2 @@
+venue_key,name,venue_type,operator_name,address,city,zip,island,lat,lon,hours_text
+example-store-kapahulu,Example Store Kapahulu,gas_station,Example Operator,123 Example Ave,Honolulu,96816,Oahu,21.2800,-157.8100,5am-11pm

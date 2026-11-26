@@ -1,0 +1,2 @@
+booking_key,campaign_key,asset_key,start_date,end_date,units_booked,unit,status,rate_usd
+example-2026-12-1,example-2026-12,example-kapahulu-cooler,2026-12-01,2026-12-28,1,spot_slot,confirmed,500

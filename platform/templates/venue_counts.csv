@@ -1,0 +1,3 @@
+venue_key,asset_key,metric_code,value,unit,period_start,period_end,source_id,evidence_ref,sample_size
+example-store-kapahulu,,register_transactions,18450,transactions,2026-10-01,2026-10-31,venue_provided,"Store POS summary Oct 2026 (email 2026-11-03)",
+example-store-kapahulu,,operating_hours_per_day,18,hours,2026-10-01,2026-10-31,venue_provided,"Store hours per operator",

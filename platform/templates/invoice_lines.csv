@@ -1,0 +1,2 @@
+txn_id,line_no,txn_type,txn_date,customer_name,customer_external_id,item_name,description,amount_usd,campaign_key,service_date,account_name
+INV-1001,1,Invoice,2026-12-01,Example Advertiser LLC,,C-Store Digital,"Holiday menu push Dec 2026",2100,example-2026-12,2026-12-01,Sales
