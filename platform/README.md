@@ -12,6 +12,7 @@ formula and assumptions**, and nothing is shown that the data or its license doe
 * Remaining credentials / data: [`docs/CREDENTIALS_NEEDED.md`](docs/CREDENTIALS_NEEDED.md)
 * Example reports (synthetic demo data): [`docs/examples/`](docs/examples)
 * Resume-work status: [`STATUS.md`](STATUS.md)
+* **Deploy to Render**: [`docs/DEPLOY_RENDER.md`](docs/DEPLOY_RENDER.md) (Blueprint in `../render.yaml`)
 
 ## Stack
 * **Next.js 16 + TypeScript** web app (server components; no client-side DB access).

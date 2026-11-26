@@ -44,7 +44,7 @@ Treat all venue/asset counts as **unverified** until reconciled with installed-p
 3. Export GPS logs for vans/trucks (templates/vehicle_gps.csv).
 4. Resolve geocoding and hotel-address exceptions (Exceptions page).
 5. Decide on one visitation provider (Placer.ai or Azira) and whether Mastercard spend data is worth licensing; update license registry after contract review.
-6. Deploy: managed Postgres with PostGIS + Node host; schedule `python -m ingest refresh-public` monthly.
+6. Deploy to Render via the Blueprint (`render.yaml`, docs/DEPLOY_RENDER.md); load `data/private/jpg-data-bundle-*.sql.gz` at /admin/restore, then set RESTORE_ENABLED=0. Rehearsed end-to-end locally.
 7. Review assumptions register with sales/ops; replace with measurements where possible.
 
 ## Commands cheat-sheet
